@@ -537,6 +537,60 @@ section.avis { background: var(--cream-deep); position: relative; }
   .avis-grid { grid-template-columns: 1fr; }
 }
 
+/* Planning Cal.com */
+section.planning { background: var(--paper); }
+.planning-tabs {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;
+  margin: 2rem 0 1.5rem; max-width: 900px;
+}
+.planning-tab {
+  background: var(--cream); border: 2px solid var(--stripe);
+  border-radius: 18px; padding: 1.5rem 1.25rem;
+  font-family: inherit; cursor: pointer; text-align: center;
+  transition: all 0.25s ease; color: var(--ink-soft);
+  display: flex; flex-direction: column; gap: 0.3rem; align-items: center;
+}
+.planning-tab:hover { transform: translateY(-2px); border-color: var(--teal-mid); }
+.planning-tab.active {
+  background: var(--teal-deep); color: var(--paper);
+  border-color: var(--teal-deep);
+  box-shadow: 0 12px 26px -10px rgba(31,74,86,0.45);
+}
+.planning-tab .ico { font-size: 1.75rem; line-height: 1; }
+.planning-tab .label { font-family: 'Fraunces', serif; font-weight: 700; font-size: 1.1rem; }
+.planning-tab .sub { font-size: 0.82rem; opacity: 0.85; }
+.planning-tab .seats {
+  font-size: 0.75rem; font-weight: 600;
+  background: var(--coral); color: var(--paper);
+  padding: 0.15rem 0.55rem; border-radius: 999px;
+  margin-top: 0.25rem;
+}
+.planning-tab.active .seats { background: var(--paper); color: var(--coral); }
+.cal-embed-wrap {
+  background: var(--cream); border-radius: 24px;
+  padding: 1.25rem; min-height: 720px; position: relative;
+  border: 1px solid var(--stripe);
+}
+.cal-setup-notice {
+  padding: 2.5rem 2rem; text-align: center; color: var(--ink-soft);
+  border: 2px dashed var(--coral); border-radius: 18px;
+  background: var(--paper); max-width: 720px; margin: 0 auto;
+}
+.cal-setup-notice .ico { font-size: 2.5rem; }
+.cal-setup-notice h4 {
+  font-family: 'Fraunces', serif; font-size: 1.4rem;
+  color: var(--teal-deep); margin: 0.75rem 0 0.5rem;
+}
+.cal-setup-notice ol { text-align: left; max-width: 520px; margin: 1.25rem auto 0; line-height: 1.7; }
+.cal-setup-notice ol li { margin-bottom: 0.4rem; }
+.cal-setup-notice code {
+  background: var(--cream-deep); padding: 0.15rem 0.5rem;
+  border-radius: 6px; font-size: 0.9em;
+}
+@media (max-width: 700px) {
+  .planning-tabs { grid-template-columns: 1fr; }
+}
+
 /* FAQ */
 section.faq { background: var(--cream-deep); }
 .faq-categories { display: grid; grid-template-columns: 220px 1fr; gap: 3rem; align-items: start; }
@@ -674,6 +728,7 @@ section.faq { background: var(--cream-deep); }
       <li><a href="#formats">Formats</a></li>
       <li><a href="#sophie">Sophie</a></li>
       <li><a href="#avis">Avis</a></li>
+      <li><a href="#planning">Planning</a></li>
       <li><a href="#tarifs">Tarifs</a></li>
       <li><a href="#faq">FAQ</a></li>
       <li><a href="#contact">Contact</a></li>
@@ -923,6 +978,85 @@ section.faq { background: var(--cream-deep); }
     </div>
   </div>
 </section>
+
+<section class="planning" id="planning">
+  <div class="container">
+    <span class="eyebrow">Réserver un créneau</span>
+    <h2 class="section-title">Choisissez votre format, puis votre créneau.</h2>
+    <p class="section-sub">Sélectionnez le type de cours ou l'inscription au stage. Le planning ci-dessous se met à jour avec les disponibilités en temps réel.</p>
+
+    <div class="planning-tabs" role="tablist" aria-label="Type de cours">
+      <button class="planning-tab active" role="tab" aria-selected="true" data-event="cours-individuel">
+        <span class="ico">👤</span>
+        <span class="label">Cours individuel</span>
+        <span class="sub">1-à-1 sur mesure</span>
+      </button>
+      <button class="planning-tab" role="tab" aria-selected="false" data-event="cours-collectif">
+        <span class="ico">👥</span>
+        <span class="label">Cours collectif</span>
+        <span class="sub">2 à 5 élèves</span>
+        <span class="seats">places limitées</span>
+      </button>
+      <button class="planning-tab" role="tab" aria-selected="false" data-event="stage-intensif">
+        <span class="ico">☀️</span>
+        <span class="label">Stage intensif</span>
+        <span class="sub">vacances scolaires</span>
+      </button>
+    </div>
+
+    <div class="cal-embed-wrap" id="cal-embed-wrap">
+      <div class="cal-setup-notice" id="cal-setup-notice">
+        <div class="ico">🛠️</div>
+        <h4>Planning bientôt disponible</h4>
+        <p>Le système de réservation en ligne est en cours de configuration. En attendant, vous pouvez <a href="#contact" style="color: var(--coral); font-weight: 600;">contacter Sophie directement</a> pour caler un créneau ensemble.</p>
+        <ol style="display: none;" id="cal-setup-steps">
+          <li>Créer un compte sur <code>cal.com</code> avec le username <code>latelierdesecoliers</code></li>
+          <li>Configurer 3 types d'événements avec les slugs <code>cours-individuel</code>, <code>cours-collectif</code>, <code>stage-intensif</code></li>
+          <li>Activer le quota de places pour les cours collectifs et stages</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+(function() {
+  // Cal.com configuration — à mettre à jour quand le compte est créé
+  const CAL_USER = "REPLACE_WITH_CAL_USERNAME"; // ex: "latelierdesecoliers"
+  const isConfigured = CAL_USER && !CAL_USER.startsWith("REPLACE_");
+
+  const tabs = document.querySelectorAll(".planning-tab");
+  const wrap = document.getElementById("cal-embed-wrap");
+
+  function loadCalEvent(slug) {
+    if (!isConfigured) return;
+    wrap.innerHTML = '<div id="cal-booking-place" style="min-height: 700px;"></div>';
+    if (typeof Cal !== "function") return;
+    Cal("inline", {
+      elementOrSelector: "#cal-booking-place",
+      calLink: CAL_USER + "/" + slug,
+      config: { layout: "month_view" }
+    });
+    Cal("ui", { theme: "light", styles: { branding: { brandColor: "#1F4A56" } } });
+  }
+
+  tabs.forEach(tab => {
+    tab.addEventListener("click", () => {
+      tabs.forEach(t => { t.classList.remove("active"); t.setAttribute("aria-selected", "false"); });
+      tab.classList.add("active");
+      tab.setAttribute("aria-selected", "true");
+      loadCalEvent(tab.dataset.event);
+    });
+  });
+
+  if (isConfigured) {
+    // Inject Cal.com embed script then load default event
+    (function (C, A, L) { let p = function (a, ar) { a.q.push(ar); }; let d = C.document; C.Cal = C.Cal || function () { let cal = C.Cal; let ar = arguments; if (!cal.loaded) { cal.ns = {}; cal.q = cal.q || []; d.head.appendChild(d.createElement("script")).src = A; cal.loaded = true; } if (ar[0] === L) { const api = function () { p(api, arguments); }; const namespace = ar[1]; api.q = api.q || []; if (typeof namespace === "string") { cal.ns[namespace] = cal.ns[namespace] || api; p(cal.ns[namespace], ar); p(cal, ["initNamespace", namespace]); } else p(cal, ar); return; } p(cal, ar); }; })(window, "https://app.cal.com/embed/embed.js", "init");
+    Cal("init", { origin: "https://app.cal.com" });
+    loadCalEvent("cours-individuel");
+  }
+})();
+</script>
 
 <section id="reservation" class="booking">
   <div class="container">
@@ -1346,6 +1480,7 @@ section.faq { background: var(--cream-deep); }
         <ul>
           <li><a href="#tarifs">Tarifs</a></li>
           <li><a href="#avis">Avis</a></li>
+          <li><a href="#planning">Planning en ligne</a></li>
           <li><a href="#faq">FAQ</a></li>
           <li><a href="#reservation">Réserver</a></li>
           <li><a href="#contact">Contact</a></li>
