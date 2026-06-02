@@ -590,6 +590,39 @@ section.planning { background: var(--paper); }
 @media (max-width: 700px) {
   .planning-tabs { grid-template-columns: 1fr; }
 }
+.slot-list { display: grid; gap: 0.75rem; }
+.slot-item {
+  background: var(--paper); border: 1.5px solid var(--stripe);
+  border-radius: 14px; padding: 1rem 1.25rem;
+  display: grid; grid-template-columns: 1fr auto auto; gap: 1.25rem;
+  align-items: center; cursor: pointer; font-family: inherit;
+  text-align: left; transition: all 0.2s ease; color: var(--ink);
+}
+.slot-item:hover {
+  border-color: var(--coral); transform: translateY(-2px);
+  box-shadow: 0 10px 24px -14px rgba(192,74,47,0.4);
+}
+.slot-day {
+  font-family: 'Fraunces', serif; font-weight: 600;
+  color: var(--teal-deep); font-size: 1rem;
+}
+.slot-time { font-size: 0.85rem; color: var(--ink-soft); margin-top: 0.15rem; }
+.slot-meta { display: flex; flex-direction: column; gap: 0.3rem; align-items: flex-start; min-width: 120px; }
+.slot-title { font-size: 0.85rem; color: var(--ink-soft); }
+.slot-seats {
+  font-size: 0.78rem; font-weight: 600;
+  padding: 0.2rem 0.6rem; border-radius: 999px;
+  background: rgba(44,122,87,0.15); color: #2C7A57;
+}
+.slot-seats.low { background: rgba(192,74,47,0.15); color: var(--coral); }
+.slot-cta {
+  color: var(--coral); font-weight: 600; font-size: 0.9rem;
+  white-space: nowrap;
+}
+@media (max-width: 600px) {
+  .slot-item { grid-template-columns: 1fr; gap: 0.5rem; }
+  .slot-cta { text-align: right; }
+}
 
 /* FAQ */
 section.faq { background: var(--cream-deep); }
@@ -1004,57 +1037,217 @@ section.faq { background: var(--cream-deep); }
       </button>
     </div>
 
-    <div class="cal-embed-wrap" id="cal-embed-wrap">
-      <div class="cal-setup-notice" id="cal-setup-notice">
+    <div class="cal-embed-wrap" id="planning-wrap">
+      <div class="cal-setup-notice" id="planning-setup-notice" style="display: none;">
         <div class="ico">🛠️</div>
         <h4>Planning bientôt disponible</h4>
         <p>Le système de réservation en ligne est en cours de configuration. En attendant, vous pouvez <a href="#contact" style="color: var(--coral); font-weight: 600;">contacter Sophie directement</a> pour caler un créneau ensemble.</p>
-        <ol style="display: none;" id="cal-setup-steps">
-          <li>Créer un compte sur <code>cal.com</code> avec le username <code>latelierdesecoliers</code></li>
-          <li>Configurer 3 types d'événements avec les slugs <code>cours-individuel</code>, <code>cours-collectif</code>, <code>stage-intensif</code></li>
-          <li>Activer le quota de places pour les cours collectifs et stages</li>
-        </ol>
+      </div>
+      <div id="slot-list" class="slot-list"></div>
+      <div id="planning-loading" style="display:none; text-align:center; padding: 2rem; color: var(--ink-soft);">Chargement des créneaux…</div>
+      <div id="planning-empty" style="display:none; text-align:center; padding: 2rem; color: var(--ink-soft);">
+        <div style="font-size: 2rem;">📅</div>
+        <p style="margin-top: 0.5rem;">Aucun créneau disponible pour ce format pour le moment.<br>
+        <a href="#contact" style="color: var(--coral); font-weight: 600;">Contactez Sophie</a> pour être prévenu·e dès qu'un créneau s'ouvre.</p>
       </div>
     </div>
   </div>
 </section>
 
+<!-- Modal de réservation -->
+<div class="modal-overlay" id="booking-modal" onclick="if(event.target===this)closeBookingModal()">
+  <div class="modal-content" style="max-width: 520px;">
+    <div class="modal-header">
+      <h2 id="booking-modal-title">Réserver ce créneau</h2>
+      <button class="modal-close" onclick="closeBookingModal()" aria-label="Fermer">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="booking-slot-info" style="background: var(--cream-deep); padding: 1rem; border-radius: 12px; margin-bottom: 1.25rem;"></div>
+      <form id="booking-form">
+        <div class="form-grid-2" style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+          <div class="form-row"><label>Prénom du parent *</label><input type="text" id="bk-firstname" required></div>
+          <div class="form-row"><label>Nom du parent *</label><input type="text" id="bk-lastname" required></div>
+        </div>
+        <div class="form-grid-2" style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+          <div class="form-row"><label>Email *</label><input type="email" id="bk-email" required></div>
+          <div class="form-row"><label>Téléphone</label><input type="tel" id="bk-phone" placeholder="06 12 34 56 78"></div>
+        </div>
+        <div class="form-grid-2" style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+          <div class="form-row"><label>Prénom de l'enfant</label><input type="text" id="bk-child"></div>
+          <div class="form-row">
+            <label>Niveau</label>
+            <select id="bk-level">
+              <option value="">—</option>
+              <option>CP</option><option>CE1</option><option>CE2</option><option>CM1</option><option>CM2</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row" style="margin-bottom: 1rem;">
+          <label>Message (optionnel)</label>
+          <textarea id="bk-notes" rows="2" placeholder="Une difficulté particulière, une attente…"></textarea>
+        </div>
+        <div id="booking-error" style="display:none; padding: 0.75rem; background: rgba(184,50,40,0.1); color: #B83228; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem;"></div>
+        <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+          <button type="button" class="btn btn-ghost" onclick="closeBookingModal()">Annuler</button>
+          <button type="submit" class="btn btn-primary" id="bk-submit">Confirmer la réservation</button>
+        </div>
+      </form>
+      <div id="booking-success" style="display:none; text-align: center; padding: 1.5rem;">
+        <div style="font-size: 3rem;">✅</div>
+        <h3 style="font-family: 'Fraunces', serif; color: var(--teal-deep); margin: 0.5rem 0 1rem;">Inscription confirmée !</h3>
+        <p style="color: var(--ink-soft);">Sophie vous contactera très prochainement pour confirmer les détails.</p>
+        <button class="btn btn-primary" onclick="closeBookingModal()" style="margin-top: 1.5rem;">Fermer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="js/supabase-config.js"></script>
 <script>
 (function() {
-  // Cal.com configuration — à mettre à jour quand le compte est créé
-  const CAL_USER = "REPLACE_WITH_CAL_USERNAME"; // ex: "latelierdesecoliers"
-  const isConfigured = CAL_USER && !CAL_USER.startsWith("REPLACE_");
+  const cfg = window.SUPABASE_CONFIG;
+  const configured = window.SUPABASE_CONFIGURED;
+  const wrap = document.getElementById("planning-wrap");
+  const notice = document.getElementById("planning-setup-notice");
+  const slotList = document.getElementById("slot-list");
+  const loading = document.getElementById("planning-loading");
+  const empty = document.getElementById("planning-empty");
 
-  const tabs = document.querySelectorAll(".planning-tab");
-  const wrap = document.getElementById("cal-embed-wrap");
-
-  function loadCalEvent(slug) {
-    if (!isConfigured) return;
-    wrap.innerHTML = '<div id="cal-booking-place" style="min-height: 700px;"></div>';
-    if (typeof Cal !== "function") return;
-    Cal("inline", {
-      elementOrSelector: "#cal-booking-place",
-      calLink: CAL_USER + "/" + slug,
-      config: { layout: "month_view" }
-    });
-    Cal("ui", { theme: "light", styles: { branding: { brandColor: "#1F4A56" } } });
+  if (!configured) {
+    notice.style.display = "block";
+    return;
   }
 
-  tabs.forEach(tab => {
+  const supabase = window.supabase.createClient(cfg.url, cfg.anonKey);
+  const FORMAT_BY_TAB = { "cours-individuel": "individuel", "cours-collectif": "collectif", "stage-intensif": "stage" };
+  let currentFormat = "individuel";
+  let currentSlots = [];
+  let selectedSlot = null;
+
+  function fmtSlot(iso, duration) {
+    const d = new Date(iso);
+    const date = d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+    const time = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    return { date: date.charAt(0).toUpperCase() + date.slice(1), time, duration };
+  }
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  async function loadSlots(format) {
+    currentFormat = format;
+    loading.style.display = "block";
+    slotList.innerHTML = "";
+    empty.style.display = "none";
+    const { data, error } = await supabase
+      .from('slots_with_count')
+      .select('*')
+      .eq('format', format)
+      .gte('starts_at', new Date().toISOString())
+      .gt('seats_left', 0)
+      .order('starts_at', { ascending: true })
+      .limit(30);
+    loading.style.display = "none";
+    if (error) {
+      slotList.innerHTML = `<div style="color: #B83228; padding: 1rem; text-align: center;">Erreur de chargement : ${esc(error.message)}</div>`;
+      return;
+    }
+    currentSlots = data || [];
+    if (!currentSlots.length) { empty.style.display = "block"; return; }
+    let html = "";
+    for (const s of currentSlots) {
+      const f = fmtSlot(s.starts_at, s.duration_minutes);
+      const seatsLabel = s.capacity > 1
+        ? `<span class="slot-seats ${s.seats_left <= 1 ? 'low' : 'ok'}">${s.seats_left} place${s.seats_left > 1 ? 's' : ''} restante${s.seats_left > 1 ? 's' : ''} / ${s.capacity}</span>`
+        : '';
+      html += `<button class="slot-item" data-id="${s.id}">
+        <div class="slot-date">
+          <div class="slot-day">${f.date}</div>
+          <div class="slot-time">${f.time} · ${f.duration} min</div>
+        </div>
+        <div class="slot-meta">
+          ${s.title ? '<div class="slot-title">'+esc(s.title)+'</div>' : ''}
+          ${seatsLabel}
+        </div>
+        <div class="slot-cta">Réserver →</div>
+      </button>`;
+    }
+    slotList.innerHTML = html;
+    slotList.querySelectorAll('.slot-item').forEach(btn => {
+      btn.addEventListener('click', () => openBookingModal(parseInt(btn.dataset.id)));
+    });
+  }
+
+  // Tabs
+  document.querySelectorAll(".planning-tab").forEach(tab => {
     tab.addEventListener("click", () => {
-      tabs.forEach(t => { t.classList.remove("active"); t.setAttribute("aria-selected", "false"); });
+      document.querySelectorAll(".planning-tab").forEach(t => { t.classList.remove("active"); t.setAttribute("aria-selected","false"); });
       tab.classList.add("active");
-      tab.setAttribute("aria-selected", "true");
-      loadCalEvent(tab.dataset.event);
+      tab.setAttribute("aria-selected","true");
+      loadSlots(FORMAT_BY_TAB[tab.dataset.event]);
     });
   });
 
-  if (isConfigured) {
-    // Inject Cal.com embed script then load default event
-    (function (C, A, L) { let p = function (a, ar) { a.q.push(ar); }; let d = C.document; C.Cal = C.Cal || function () { let cal = C.Cal; let ar = arguments; if (!cal.loaded) { cal.ns = {}; cal.q = cal.q || []; d.head.appendChild(d.createElement("script")).src = A; cal.loaded = true; } if (ar[0] === L) { const api = function () { p(api, arguments); }; const namespace = ar[1]; api.q = api.q || []; if (typeof namespace === "string") { cal.ns[namespace] = cal.ns[namespace] || api; p(cal.ns[namespace], ar); p(cal, ["initNamespace", namespace]); } else p(cal, ar); return; } p(cal, ar); }; })(window, "https://app.cal.com/embed/embed.js", "init");
-    Cal("init", { origin: "https://app.cal.com" });
-    loadCalEvent("cours-individuel");
-  }
+  // Booking modal
+  const modal = document.getElementById("booking-modal");
+  const form = document.getElementById("booking-form");
+  const success = document.getElementById("booking-success");
+  const errBox = document.getElementById("booking-error");
+
+  window.openBookingModal = function(slotId) {
+    selectedSlot = currentSlots.find(s => s.id === slotId);
+    if (!selectedSlot) return;
+    const f = fmtSlot(selectedSlot.starts_at, selectedSlot.duration_minutes);
+    const formatLabel = { individuel: "Cours individuel", collectif: "Cours collectif", stage: "Stage intensif" }[selectedSlot.format];
+    document.getElementById("booking-slot-info").innerHTML = `
+      <div style="font-family: 'Fraunces', serif; font-size: 1.1rem; color: var(--teal-deep); font-weight: 600;">${esc(formatLabel)}</div>
+      <div style="margin-top: 0.25rem;">${esc(f.date)} · ${esc(f.time)} (${esc(f.duration)} min)</div>
+      ${selectedSlot.title ? '<div style="margin-top: 0.25rem; color: var(--ink-soft); font-size: 0.9rem;">'+esc(selectedSlot.title)+'</div>' : ''}
+    `;
+    form.style.display = "block";
+    success.style.display = "none";
+    errBox.style.display = "none";
+    form.reset();
+    modal.classList.add("open"); document.body.style.overflow = 'hidden';
+  };
+
+  window.closeBookingModal = function() {
+    modal.classList.remove("open"); document.body.style.overflow = '';
+    selectedSlot = null;
+  };
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!selectedSlot) return;
+    const submitBtn = document.getElementById("bk-submit");
+    submitBtn.disabled = true; submitBtn.textContent = "Envoi…";
+    errBox.style.display = "none";
+    const payload = {
+      slot_id: selectedSlot.id,
+      parent_name: (document.getElementById("bk-firstname").value.trim() + " " + document.getElementById("bk-lastname").value.trim()).trim(),
+      parent_email: document.getElementById("bk-email").value.trim(),
+      parent_phone: document.getElementById("bk-phone").value.trim() || null,
+      child_name: document.getElementById("bk-child").value.trim() || null,
+      child_level: document.getElementById("bk-level").value || null,
+      notes: document.getElementById("bk-notes").value.trim() || null,
+    };
+    const { error } = await supabase.from('bookings').insert(payload);
+    submitBtn.disabled = false; submitBtn.textContent = "Confirmer la réservation";
+    if (error) {
+      errBox.textContent = "Une erreur est survenue : " + error.message + ". Si le créneau est plein, choisissez-en un autre.";
+      errBox.style.display = "block";
+      return;
+    }
+    form.style.display = "none";
+    success.style.display = "block";
+    // Reload slots in background to update seat counts
+    loadSlots(currentFormat);
+  });
+
+  // Initial load
+  loadSlots("individuel");
 })();
 </script>
 

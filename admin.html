@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Backoffice — L'Atelier des Écoliers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400..900&family=Outfit:wght@300..700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cream: #F4ECD8; --paper: #FBF6E9; --cream-deep: #EBE0C5;
+  --teal-deep: #1F4A56; --teal: #2C5F6F;
+  --coral: #C04A2F; --tan: #D4A574;
+  --ink: #1A1A1A; --ink-soft: #3D3530;
+  --line: rgba(31,74,86,0.12);
+  --green: #2C7A57; --red: #B83228;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--cream); color: var(--ink);
+  font-family: 'Outfit', sans-serif; line-height: 1.5;
+  min-height: 100vh;
+}
+.topbar {
+  background: var(--teal-deep); color: var(--paper);
+  padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between;
+}
+.topbar h1 {
+  font-family: 'Fraunces', serif; font-weight: 700;
+  font-size: 1.25rem; letter-spacing: -0.01em;
+}
+.topbar .user { font-size: 0.9rem; opacity: 0.9; display: flex; gap: 1rem; align-items: center; }
+.topbar button {
+  background: rgba(255,255,255,0.15); color: var(--paper); border: none;
+  padding: 0.45rem 0.9rem; border-radius: 8px; font-family: inherit; cursor: pointer;
+  font-size: 0.85rem; transition: background 0.2s;
+}
+.topbar button:hover { background: rgba(255,255,255,0.25); }
+main { max-width: 1100px; margin: 2rem auto; padding: 0 1.5rem; }
+
+/* Login */
+.login-card {
+  max-width: 420px; margin: 4rem auto; background: var(--paper);
+  border-radius: 20px; padding: 2.5rem; box-shadow: 0 20px 50px -20px rgba(31,74,86,0.25);
+}
+.login-card h2 {
+  font-family: 'Fraunces', serif; color: var(--teal-deep);
+  font-size: 1.6rem; margin-bottom: 0.5rem;
+}
+.login-card p { color: var(--ink-soft); margin-bottom: 1.5rem; font-size: 0.95rem; }
+.login-card input {
+  width: 100%; padding: 0.8rem 1rem; font-family: inherit; font-size: 1rem;
+  border: 2px solid var(--line); border-radius: 10px; background: var(--cream);
+  margin-bottom: 1rem;
+}
+.login-card input:focus { outline: none; border-color: var(--teal); }
+.login-card button {
+  width: 100%; padding: 0.9rem; background: var(--teal-deep); color: var(--paper);
+  border: none; border-radius: 10px; font-family: inherit; font-weight: 600;
+  font-size: 1rem; cursor: pointer; transition: background 0.2s;
+}
+.login-card button:hover { background: var(--teal); }
+.login-card button:disabled { opacity: 0.6; cursor: not-allowed; }
+.login-msg { margin-top: 1rem; padding: 0.8rem; border-radius: 8px; font-size: 0.9rem; }
+.login-msg.ok { background: rgba(44,122,87,0.1); color: var(--green); }
+.login-msg.err { background: rgba(184,50,40,0.1); color: var(--red); }
+
+/* Sections */
+section.panel {
+  background: var(--paper); border-radius: 16px;
+  padding: 1.5rem; margin-bottom: 1.5rem;
+  box-shadow: 0 10px 30px -18px rgba(31,74,86,0.2);
+}
+.panel-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 1.25rem; gap: 1rem; flex-wrap: wrap;
+}
+.panel-head h2 {
+  font-family: 'Fraunces', serif; color: var(--teal-deep);
+  font-size: 1.3rem;
+}
+.btn {
+  padding: 0.55rem 1rem; border-radius: 10px; font-family: inherit;
+  font-weight: 600; font-size: 0.9rem; cursor: pointer; border: none;
+  transition: all 0.2s;
+}
+.btn-primary { background: var(--coral); color: var(--paper); }
+.btn-primary:hover { background: #a83d27; }
+.btn-ghost { background: transparent; color: var(--teal-deep); border: 1.5px solid var(--line); }
+.btn-ghost:hover { background: var(--cream); }
+.btn-danger { background: transparent; color: var(--red); border: 1.5px solid var(--red); }
+.btn-danger:hover { background: rgba(184,50,40,0.08); }
+
+/* Filters */
+.filters { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.chip {
+  padding: 0.4rem 0.9rem; border-radius: 999px; cursor: pointer;
+  border: 1.5px solid var(--line); background: var(--cream);
+  font-family: inherit; font-size: 0.85rem; color: var(--ink-soft);
+  transition: all 0.2s;
+}
+.chip:hover { border-color: var(--teal-mid); }
+.chip.active { background: var(--teal-deep); color: var(--paper); border-color: var(--teal-deep); }
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+th { text-align: left; font-weight: 600; color: var(--ink-soft); padding: 0.65rem 0.75rem; border-bottom: 2px solid var(--line); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; }
+td { padding: 0.85rem 0.75rem; border-bottom: 1px solid var(--line); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tbody tr:hover { background: var(--cream); }
+.tag {
+  display: inline-block; padding: 0.15rem 0.55rem; border-radius: 999px;
+  font-size: 0.72rem; font-weight: 600; letter-spacing: 0.02em;
+}
+.tag.individuel { background: rgba(31,74,86,0.12); color: var(--teal-deep); }
+.tag.collectif { background: rgba(212,165,116,0.25); color: #6b4621; }
+.tag.stage { background: rgba(192,74,47,0.15); color: var(--coral); }
+.seats-bar {
+  display: inline-flex; gap: 0.3rem; align-items: center;
+  font-size: 0.85rem; font-weight: 600;
+}
+.seats-bar.full { color: var(--red); }
+.seats-bar.low { color: var(--coral); }
+.seats-bar.ok { color: var(--green); }
+.actions-cell { display: flex; gap: 0.4rem; justify-content: flex-end; }
+.icon-btn {
+  background: transparent; border: none; cursor: pointer;
+  padding: 0.3rem 0.5rem; border-radius: 6px; font-size: 0.95rem;
+  color: var(--ink-soft); transition: all 0.15s;
+}
+.icon-btn:hover { background: var(--cream-deep); color: var(--teal-deep); }
+.icon-btn.danger:hover { background: rgba(184,50,40,0.1); color: var(--red); }
+.empty {
+  text-align: center; padding: 2.5rem 1rem; color: var(--ink-soft);
+  font-size: 0.95rem;
+}
+.empty .ico { font-size: 2rem; margin-bottom: 0.5rem; }
+
+/* Modal */
+.modal-back {
+  position: fixed; inset: 0; background: rgba(26,26,26,0.5);
+  display: none; align-items: center; justify-content: center;
+  z-index: 100; padding: 1rem;
+}
+.modal-back.show { display: flex; }
+.modal {
+  background: var(--paper); border-radius: 16px; padding: 2rem;
+  max-width: 460px; width: 100%; max-height: 90vh; overflow-y: auto;
+}
+.modal h3 {
+  font-family: 'Fraunces', serif; color: var(--teal-deep);
+  font-size: 1.3rem; margin-bottom: 1.25rem;
+}
+.modal .row { display: grid; gap: 0.3rem; margin-bottom: 1rem; }
+.modal label { font-size: 0.78rem; font-weight: 600; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.04em; }
+.modal input, .modal select, .modal textarea {
+  padding: 0.65rem 0.85rem; font-family: inherit; font-size: 0.95rem;
+  border: 1.5px solid var(--line); border-radius: 10px; background: var(--cream);
+}
+.modal input:focus, .modal select:focus, .modal textarea:focus { outline: none; border-color: var(--teal); }
+.modal-actions { display: flex; gap: 0.6rem; justify-content: flex-end; margin-top: 1.5rem; }
+
+.notice {
+  background: rgba(255,193,7,0.15); border-left: 4px solid #d4a574;
+  padding: 1rem 1.25rem; border-radius: 10px; margin-bottom: 1.5rem;
+  font-size: 0.92rem; color: var(--ink-soft);
+}
+.notice code { background: var(--cream-deep); padding: 0.1rem 0.4rem; border-radius: 4px; font-size: 0.88em; }
+
+@media (max-width: 700px) {
+  .topbar { padding: 0.85rem 1rem; }
+  table { font-size: 0.85rem; }
+  th, td { padding: 0.55rem 0.5rem; }
+  .actions-cell { gap: 0.2rem; }
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <h1>Backoffice — L'Atelier des Écoliers</h1>
+  <div class="user" id="topbar-user" style="display:none;">
+    <span id="user-email"></span>
+    <button id="logout-btn">Se déconnecter</button>
+  </div>
+</header>
+
+<main>
+
+  <!-- Notice si Supabase pas configuré -->
+  <div class="notice" id="setup-notice" style="display:none;">
+    <strong>⚠️ Configuration Supabase requise.</strong>
+    Le backoffice n'est pas encore opérationnel. Voir l'issue GitHub
+    « <em>Configurer Supabase</em> » pour les étapes (création du projet, exécution du
+    script <code>sql/schema.sql</code>, mise à jour de <code>js/supabase-config.js</code>).
+  </div>
+
+  <!-- LOGIN -->
+  <div class="login-card" id="login-card" style="display:none;">
+    <h2>Connexion</h2>
+    <p>Entrez votre email — vous recevrez un lien de connexion à usage unique.</p>
+    <form id="login-form">
+      <input type="email" id="login-email" placeholder="sophie@latelierdesecoliers.com" required autocomplete="email">
+      <button type="submit" id="login-btn">Recevoir le lien</button>
+    </form>
+    <div class="login-msg" id="login-msg" style="display:none;"></div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="dashboard" style="display:none;">
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Créneaux à venir</h2>
+        <button class="btn btn-primary" id="add-slot-btn">+ Ajouter un créneau</button>
+      </div>
+      <div class="filters" style="margin-bottom: 1rem;">
+        <button class="chip active" data-filter="all">Tous</button>
+        <button class="chip" data-filter="individuel">Individuel</button>
+        <button class="chip" data-filter="collectif">Collectif</button>
+        <button class="chip" data-filter="stage">Stage</button>
+      </div>
+      <div id="slots-container"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Inscriptions reçues</h2>
+        <span style="font-size: 0.85rem; color: var(--ink-soft);" id="bookings-count">—</span>
+      </div>
+      <div id="bookings-container"></div>
+    </section>
+
+  </div>
+
+</main>
+
+<!-- Modal créneau -->
+<div class="modal-back" id="slot-modal">
+  <div class="modal">
+    <h3 id="slot-modal-title">Nouveau créneau</h3>
+    <form id="slot-form">
+      <input type="hidden" id="slot-id">
+      <div class="row">
+        <label>Format</label>
+        <select id="slot-format" required>
+          <option value="individuel">Cours individuel (1 place)</option>
+          <option value="collectif">Cours collectif (2-5 places)</option>
+          <option value="stage">Stage intensif</option>
+        </select>
+      </div>
+      <div class="row">
+        <label>Date et heure de début</label>
+        <input type="datetime-local" id="slot-starts-at" required>
+      </div>
+      <div class="row">
+        <label>Durée (minutes)</label>
+        <input type="number" id="slot-duration" min="15" max="240" step="15" value="60" required>
+      </div>
+      <div class="row">
+        <label>Capacité (places)</label>
+        <input type="number" id="slot-capacity" min="1" max="20" value="1" required>
+      </div>
+      <div class="row">
+        <label>Titre (optionnel)</label>
+        <input type="text" id="slot-title" placeholder="Ex : Stage CE2 — semaine 1">
+      </div>
+      <div class="row">
+        <label>Notes internes (optionnel)</label>
+        <textarea id="slot-notes" rows="2"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="slot-cancel">Annuler</button>
+        <button type="submit" class="btn btn-primary" id="slot-save">Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal détail réservation -->
+<div class="modal-back" id="booking-modal">
+  <div class="modal">
+    <h3>Détail de l'inscription</h3>
+    <div id="booking-detail"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-danger" id="booking-delete">Supprimer</button>
+      <button type="button" class="btn btn-ghost" id="booking-close">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="js/supabase-config.js"></script>
+<script>
+(function () {
+  const cfg = window.SUPABASE_CONFIG;
+  const configured = window.SUPABASE_CONFIGURED;
+  const notice = document.getElementById('setup-notice');
+  const loginCard = document.getElementById('login-card');
+  const dashboard = document.getElementById('dashboard');
+  const topbarUser = document.getElementById('topbar-user');
+
+  if (!configured) {
+    notice.style.display = 'block';
+    return;
+  }
+
+  const supabase = window.supabase.createClient(cfg.url, cfg.anonKey);
+  let currentFilter = 'all';
+  let slotsCache = [];
+  let bookingsCache = [];
+
+  // === AUTH ===
+  async function refreshSession() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) showDashboard(session.user);
+    else showLogin();
+  }
+
+  function showLogin() {
+    loginCard.style.display = 'block';
+    dashboard.style.display = 'none';
+    topbarUser.style.display = 'none';
+  }
+
+  function showDashboard(user) {
+    loginCard.style.display = 'none';
+    dashboard.style.display = 'block';
+    topbarUser.style.display = 'flex';
+    document.getElementById('user-email').textContent = user.email;
+    loadAll();
+  }
+
+  document.getElementById('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('login-email').value.trim();
+    const msg = document.getElementById('login-msg');
+    const btn = document.getElementById('login-btn');
+    btn.disabled = true; btn.textContent = 'Envoi en cours…';
+    msg.style.display = 'none';
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: window.location.href.split('#')[0] }
+    });
+    btn.disabled = false; btn.textContent = 'Recevoir le lien';
+    if (error) {
+      msg.className = 'login-msg err';
+      msg.textContent = 'Erreur : ' + error.message;
+    } else {
+      msg.className = 'login-msg ok';
+      msg.textContent = 'Lien envoyé ! Vérifiez votre boîte mail et cliquez sur le lien pour vous connecter.';
+    }
+    msg.style.display = 'block';
+  });
+
+  document.getElementById('logout-btn').addEventListener('click', async () => {
+    await supabase.auth.signOut();
+    showLogin();
+  });
+
+  supabase.auth.onAuthStateChange((_event, session) => {
+    if (session) showDashboard(session.user);
+    else showLogin();
+  });
+
+  // === DATA ===
+  async function loadAll() {
+    await Promise.all([loadSlots(), loadBookings()]);
+  }
+
+  async function loadSlots() {
+    const { data, error } = await supabase
+      .from('slots_with_count')
+      .select('*')
+      .gte('starts_at', new Date().toISOString())
+      .order('starts_at', { ascending: true });
+    if (error) { console.error(error); return; }
+    slotsCache = data || [];
+    renderSlots();
+  }
+
+  async function loadBookings() {
+    const { data, error } = await supabase
+      .from('bookings')
+      .select('*, slots(starts_at, format, title)')
+      .order('created_at', { ascending: false })
+      .limit(50);
+    if (error) { console.error(error); return; }
+    bookingsCache = data || [];
+    renderBookings();
+  }
+
+  // === RENDER ===
+  const fmtDate = (iso) => {
+    const d = new Date(iso);
+    return d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })
+      + ' · ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  };
+
+  function renderSlots() {
+    const container = document.getElementById('slots-container');
+    const slots = currentFilter === 'all'
+      ? slotsCache
+      : slotsCache.filter(s => s.format === currentFilter);
+    if (!slots.length) {
+      container.innerHTML = `<div class="empty"><div class="ico">📅</div>Aucun créneau ${currentFilter !== 'all' ? 'pour ce format' : 'à venir'}.<br><small>Cliquez sur « + Ajouter un créneau » pour commencer.</small></div>`;
+      return;
+    }
+    let html = '<table><thead><tr><th>Quand</th><th>Format</th><th>Titre</th><th>Places</th><th></th></tr></thead><tbody>';
+    for (const s of slots) {
+      const seatsClass = s.seats_left === 0 ? 'full' : (s.seats_left <= 1 ? 'low' : 'ok');
+      const seatsLabel = s.seats_left === 0 ? 'Complet' : `${s.booked}/${s.capacity}`;
+      html += `<tr>
+        <td>${fmtDate(s.starts_at)}<br><small style="color:var(--ink-soft);">${s.duration_minutes} min</small></td>
+        <td><span class="tag ${s.format}">${s.format}</span></td>
+        <td>${s.title ? escapeHtml(s.title) : '<span style="color:var(--ink-soft);">—</span>'}</td>
+        <td><span class="seats-bar ${seatsClass}">${seatsLabel}</span></td>
+        <td class="actions-cell">
+          <button class="icon-btn" data-edit="${s.id}" title="Modifier">✏️</button>
+          <button class="icon-btn danger" data-delete="${s.id}" title="Supprimer">🗑</button>
+        </td>
+      </tr>`;
+    }
+    html += '</tbody></table>';
+    container.innerHTML = html;
+    container.querySelectorAll('[data-edit]').forEach(b =>
+      b.addEventListener('click', () => openSlotModal(slotsCache.find(s => s.id == b.dataset.edit))));
+    container.querySelectorAll('[data-delete]').forEach(b =>
+      b.addEventListener('click', () => deleteSlot(parseInt(b.dataset.delete))));
+  }
+
+  function renderBookings() {
+    const container = document.getElementById('bookings-container');
+    document.getElementById('bookings-count').textContent =
+      bookingsCache.length + (bookingsCache.length === 50 ? ' (50 dernières)' : '');
+    if (!bookingsCache.length) {
+      container.innerHTML = `<div class="empty"><div class="ico">📭</div>Aucune inscription pour le moment.</div>`;
+      return;
+    }
+    let html = '<table><thead><tr><th>Reçue le</th><th>Parent</th><th>Enfant</th><th>Créneau</th><th></th></tr></thead><tbody>';
+    for (const b of bookingsCache) {
+      const slot = b.slots;
+      html += `<tr>
+        <td><small>${fmtDate(b.created_at)}</small></td>
+        <td><strong>${escapeHtml(b.parent_name)}</strong><br><small>${escapeHtml(b.parent_email)}</small></td>
+        <td>${b.child_name ? escapeHtml(b.child_name) : '—'}${b.child_level ? ' <small>('+escapeHtml(b.child_level)+')</small>' : ''}</td>
+        <td>${slot ? '<span class="tag '+slot.format+'">'+slot.format+'</span><br><small>'+fmtDate(slot.starts_at)+'</small>' : '<small>(créneau supprimé)</small>'}</td>
+        <td class="actions-cell">
+          <button class="icon-btn" data-view="${b.id}" title="Voir le détail">👁</button>
+        </td>
+      </tr>`;
+    }
+    html += '</tbody></table>';
+    container.innerHTML = html;
+    container.querySelectorAll('[data-view]').forEach(btn =>
+      btn.addEventListener('click', () => openBookingModal(bookingsCache.find(b => b.id == btn.dataset.view))));
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  // === FILTERS ===
+  document.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      currentFilter = chip.dataset.filter;
+      renderSlots();
+    });
+  });
+
+  // === SLOT MODAL ===
+  const slotModal = document.getElementById('slot-modal');
+  function openSlotModal(slot) {
+    document.getElementById('slot-modal-title').textContent = slot ? 'Modifier le créneau' : 'Nouveau créneau';
+    document.getElementById('slot-id').value = slot ? slot.id : '';
+    document.getElementById('slot-format').value = slot ? slot.format : 'individuel';
+    if (slot) {
+      const d = new Date(slot.starts_at);
+      const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+      document.getElementById('slot-starts-at').value = local;
+    } else {
+      document.getElementById('slot-starts-at').value = '';
+    }
+    document.getElementById('slot-duration').value = slot ? slot.duration_minutes : 60;
+    document.getElementById('slot-capacity').value = slot ? slot.capacity : (document.getElementById('slot-format').value === 'individuel' ? 1 : 5);
+    document.getElementById('slot-title').value = slot ? (slot.title || '') : '';
+    document.getElementById('slot-notes').value = slot ? (slot.notes || '') : '';
+    slotModal.classList.add('show');
+  }
+  function closeSlotModal() { slotModal.classList.remove('show'); }
+  document.getElementById('add-slot-btn').addEventListener('click', () => openSlotModal(null));
+  document.getElementById('slot-cancel').addEventListener('click', closeSlotModal);
+  slotModal.addEventListener('click', (e) => { if (e.target === slotModal) closeSlotModal(); });
+
+  // Auto-adjust capacity when format changes (new slot only)
+  document.getElementById('slot-format').addEventListener('change', (e) => {
+    if (!document.getElementById('slot-id').value) {
+      document.getElementById('slot-capacity').value = e.target.value === 'individuel' ? 1 : 5;
+    }
+  });
+
+  document.getElementById('slot-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('slot-id').value;
+    const payload = {
+      format: document.getElementById('slot-format').value,
+      starts_at: new Date(document.getElementById('slot-starts-at').value).toISOString(),
+      duration_minutes: parseInt(document.getElementById('slot-duration').value),
+      capacity: parseInt(document.getElementById('slot-capacity').value),
+      title: document.getElementById('slot-title').value.trim() || null,
+      notes: document.getElementById('slot-notes').value.trim() || null,
+    };
+    const saveBtn = document.getElementById('slot-save');
+    saveBtn.disabled = true; saveBtn.textContent = 'Enregistrement…';
+    const op = id
+      ? supabase.from('slots').update(payload).eq('id', parseInt(id))
+      : supabase.from('slots').insert(payload);
+    const { error } = await op;
+    saveBtn.disabled = false; saveBtn.textContent = 'Enregistrer';
+    if (error) { alert('Erreur : ' + error.message); return; }
+    closeSlotModal();
+    await loadSlots();
+  });
+
+  async function deleteSlot(id) {
+    const slot = slotsCache.find(s => s.id === id);
+    const msg = slot && slot.booked > 0
+      ? `⚠️ Ce créneau a ${slot.booked} inscription(s). Le supprimer va aussi supprimer les inscriptions. Continuer ?`
+      : 'Supprimer ce créneau ?';
+    if (!confirm(msg)) return;
+    const { error } = await supabase.from('slots').delete().eq('id', id);
+    if (error) { alert('Erreur : ' + error.message); return; }
+    await loadAll();
+  }
+
+  // === BOOKING MODAL ===
+  const bookingModal = document.getElementById('booking-modal');
+  let currentBooking = null;
+  function openBookingModal(b) {
+    currentBooking = b;
+    const slot = b.slots;
+    document.getElementById('booking-detail').innerHTML = `
+      <div class="row"><label>Parent</label><div>${escapeHtml(b.parent_name)}</div></div>
+      <div class="row"><label>Email</label><div><a href="mailto:${escapeHtml(b.parent_email)}">${escapeHtml(b.parent_email)}</a></div></div>
+      <div class="row"><label>Téléphone</label><div>${b.parent_phone ? '<a href="tel:'+escapeHtml(b.parent_phone)+'">'+escapeHtml(b.parent_phone)+'</a>' : '—'}</div></div>
+      <div class="row"><label>Enfant</label><div>${b.child_name ? escapeHtml(b.child_name) : '—'} ${b.child_level ? '('+escapeHtml(b.child_level)+')' : ''}</div></div>
+      <div class="row"><label>Créneau réservé</label><div>${slot ? '<span class="tag '+slot.format+'">'+slot.format+'</span> · '+fmtDate(slot.starts_at) : '(supprimé)'}</div></div>
+      <div class="row"><label>Notes du parent</label><div>${b.notes ? escapeHtml(b.notes) : '—'}</div></div>
+      <div class="row"><label>Inscription reçue le</label><div>${fmtDate(b.created_at)}</div></div>
+    `;
+    bookingModal.classList.add('show');
+  }
+  document.getElementById('booking-close').addEventListener('click', () => bookingModal.classList.remove('show'));
+  bookingModal.addEventListener('click', (e) => { if (e.target === bookingModal) bookingModal.classList.remove('show'); });
+  document.getElementById('booking-delete').addEventListener('click', async () => {
+    if (!currentBooking) return;
+    if (!confirm('Supprimer cette inscription ? Le parent ne sera pas notifié automatiquement.')) return;
+    const { error } = await supabase.from('bookings').delete().eq('id', currentBooking.id);
+    if (error) { alert('Erreur : ' + error.message); return; }
+    bookingModal.classList.remove('show');
+    await loadAll();
+  });
+
+  // === INIT ===
+  refreshSession();
+})();
+</script>
+</body>
+</html>
