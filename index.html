@@ -504,15 +504,24 @@ footer .container { max-width: 1300px; margin: 0 auto; }
   .method-grid { grid-template-columns: 1fr; }
   .hero h1 { font-size: 2rem; }
 }
-/* Avis parents */
+/* Avis parents — carrousel */
 section.avis { background: var(--cream-deep); position: relative; }
-.avis-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
+.avis-carousel { position: relative; margin-top: 2rem; }
+.avis-track {
+  display: flex; gap: 1.5rem; overflow-x: auto;
+  scroll-snap-type: x mandatory; scroll-behavior: smooth;
+  padding: 1.5rem 0.5rem 1.75rem;
+  scrollbar-width: none; -ms-overflow-style: none;
+}
+.avis-track::-webkit-scrollbar { display: none; }
 .avis-card {
+  flex: 0 0 calc((100% - 3rem) / 3); min-width: 280px;
   background: var(--paper); border-radius: 18px;
   padding: 2rem 1.75rem; position: relative;
   transform: rotate(var(--rot, 0deg));
   box-shadow: 0 8px 20px -10px rgba(0,0,0,0.15);
   transition: transform 0.3s ease;
+  scroll-snap-align: start;
 }
 .avis-card:hover { transform: rotate(0deg) translateY(-4px); }
 .avis-card::before {
@@ -524,17 +533,31 @@ section.avis { background: var(--cream-deep); position: relative; }
 .avis-text { margin: 1.25rem 0 1.25rem; color: var(--ink-soft); font-style: italic; line-height: 1.65; }
 .avis-author { font-weight: 600; color: var(--teal-deep); font-family: 'Fraunces', serif; }
 .avis-meta { font-size: 0.85rem; color: var(--ink-soft); margin-top: 0.15rem; }
-.avis-placeholder-banner {
-  margin-top: 2.5rem; padding: 1.5rem 1.75rem;
-  background: var(--paper); border: 2px dashed var(--coral);
-  border-radius: 16px; font-size: 0.95rem; color: var(--ink-soft);
-  display: flex; gap: 1rem; align-items: center;
+.avis-nav {
+  display: flex; justify-content: center; align-items: center;
+  gap: 1rem; margin-top: 1rem;
 }
-.avis-placeholder-banner .ico {
-  font-size: 1.75rem; flex-shrink: 0;
+.avis-btn {
+  width: 44px; height: 44px; border-radius: 50%;
+  border: 1.5px solid var(--teal-deep); background: var(--paper);
+  cursor: pointer; font-family: inherit; font-size: 1.1rem;
+  color: var(--teal-deep); display: grid; place-items: center;
+  transition: all 0.2s ease;
 }
+.avis-btn:hover { background: var(--teal-deep); color: var(--paper); transform: translateY(-2px); }
+.avis-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; background: var(--paper); color: var(--teal-deep); }
+.avis-dots { display: flex; gap: 0.45rem; }
+.avis-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--stripe); border: none; padding: 0; cursor: pointer;
+  transition: all 0.2s ease;
+}
+.avis-dot.active { background: var(--coral); width: 24px; border-radius: 4px; }
 @media (max-width: 900px) {
-  .avis-grid { grid-template-columns: 1fr; }
+  .avis-card { flex: 0 0 calc((100% - 1.5rem) / 2); }
+}
+@media (max-width: 600px) {
+  .avis-card { flex: 0 0 85%; }
 }
 
 /* Planning Cal.com */
@@ -989,7 +1012,8 @@ section.faq { background: var(--cream-deep); }
     <span class="eyebrow">Avis de parents</span>
     <h2 class="section-title">Ce que disent les familles accompagnées.</h2>
     <p class="section-sub">Des témoignages de parents d'élèves anciens ou actuels — recueillis après plusieurs mois d'accompagnement.</p>
-    <div class="avis-grid">
+    <div class="avis-carousel">
+    <div class="avis-track" id="avis-track">
       <div class="avis-card" style="--rot: -1deg;">
         <div class="avis-stars">★★★★★</div>
         <p class="avis-text">Charlotte présente des besoins particuliers. Sophie a su instaurer une relation de confiance qui a permis à Charlotte de progresser dans un cadre rassurant et bienveillant. Le plus grand changement concerne sa confiance en elle : elle ose davantage essayer et persévérer face aux difficultés. Je la recommande sans hésitation.</p>
@@ -1015,8 +1039,75 @@ section.faq { background: var(--cream-deep); }
         <div class="avis-meta">Maman de Jade · Viroflay</div>
       </div>
     </div>
+    <div class="avis-nav">
+      <button class="avis-btn" id="avis-prev" aria-label="Témoignage précédent">←</button>
+      <div class="avis-dots" id="avis-dots" role="tablist" aria-label="Témoignages"></div>
+      <button class="avis-btn" id="avis-next" aria-label="Témoignage suivant">→</button>
+    </div>
+    </div>
   </div>
 </section>
+
+<script>
+(function() {
+  const track = document.getElementById('avis-track');
+  if (!track) return;
+  const cards = Array.from(track.children);
+  const prev = document.getElementById('avis-prev');
+  const next = document.getElementById('avis-next');
+  const dotsWrap = document.getElementById('avis-dots');
+
+  // Build dots (one per card)
+  cards.forEach((_, i) => {
+    const dot = document.createElement('button');
+    dot.className = 'avis-dot' + (i === 0 ? ' active' : '');
+    dot.setAttribute('role', 'tab');
+    dot.setAttribute('aria-label', 'Aller au témoignage ' + (i + 1));
+    dot.addEventListener('click', () => {
+      cards[i].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+    });
+    dotsWrap.appendChild(dot);
+  });
+  const dots = Array.from(dotsWrap.children);
+
+  function scrollByCards(dir) {
+    const cardWidth = cards[0].getBoundingClientRect().width + 24; // 24 ≈ gap
+    track.scrollBy({ left: dir * cardWidth, behavior: 'smooth' });
+  }
+  prev.addEventListener('click', () => scrollByCards(-1));
+  next.addEventListener('click', () => scrollByCards(1));
+
+  // Update dots + button states on scroll
+  let scrollTimer = null;
+  function updateState() {
+    const trackLeft = track.scrollLeft;
+    const trackWidth = track.clientWidth;
+    let activeIdx = 0;
+    let bestDist = Infinity;
+    cards.forEach((c, i) => {
+      const cLeft = c.offsetLeft - track.offsetLeft;
+      const dist = Math.abs(cLeft - trackLeft);
+      if (dist < bestDist) { bestDist = dist; activeIdx = i; }
+    });
+    dots.forEach((d, i) => d.classList.toggle('active', i === activeIdx));
+    prev.disabled = trackLeft <= 4;
+    next.disabled = trackLeft + trackWidth >= track.scrollWidth - 4;
+  }
+  track.addEventListener('scroll', () => {
+    if (scrollTimer) cancelAnimationFrame(scrollTimer);
+    scrollTimer = requestAnimationFrame(updateState);
+  });
+  window.addEventListener('resize', updateState);
+  updateState();
+
+  // Keyboard navigation when carousel is focused
+  track.tabIndex = 0;
+  track.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') { e.preventDefault(); scrollByCards(-1); }
+    else if (e.key === 'ArrowRight') { e.preventDefault(); scrollByCards(1); }
+  });
+})();
+</script>
 
 <section class="planning" id="planning">
   <div class="container">
