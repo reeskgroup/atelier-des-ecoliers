@@ -506,7 +506,7 @@ footer .container { max-width: 1300px; margin: 0 auto; }
 }
 /* Avis parents */
 section.avis { background: var(--cream-deep); position: relative; }
-.avis-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+.avis-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
 .avis-card {
   background: var(--paper); border-radius: 18px;
   padding: 2rem 1.75rem; position: relative;
@@ -1007,6 +1007,12 @@ section.faq { background: var(--cream-deep); }
         <p class="avis-text">Ma fille est accompagnée par Sophie depuis le CP, 2 fois par semaine. La méthode rigoureuse et efficace de Sophie a facilité la compréhension progressive des notions. Nette amélioration des résultats scolaires : ma fille a acquis des bases solides pour le CE2. Je recommande vivement !</p>
         <div class="avis-author">Nadia</div>
         <div class="avis-meta">Maman de Yousra · Versailles</div>
+      </div>
+      <div class="avis-card" style="--rot: 0.8deg;">
+        <div class="avis-stars">★★★★★</div>
+        <p class="avis-text">Ma fille a été accompagnée par Sophie pendant 4 ans avec beaucoup de sérieux, de rigueur et de bienveillance. Grâce à une méthode de travail structurée, elle a acquis des bases solides et une véritable autonomie. Sophie a notamment su reprendre l'ensemble du programme de mathématiques en CM2 lorsque l'enseignement avait été insuffisant. Un soutien précieux, je la recommande vivement.</p>
+        <div class="avis-author">Angélique</div>
+        <div class="avis-meta">Maman de Jade · Viroflay</div>
       </div>
     </div>
   </div>
