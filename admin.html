@@ -213,80 +213,37 @@ tbody tr:hover { background: var(--cream); }
 
     <section class="panel">
       <div class="panel-head">
-        <h2>Créneaux à venir</h2>
-        <button class="btn btn-primary" id="add-slot-btn">+ Ajouter un créneau</button>
+        <h2>Demandes de rendez-vous</h2>
+        <span style="font-size: 0.85rem; color: var(--ink-soft);" id="rq-count">—</span>
       </div>
       <div class="filters" style="margin-bottom: 1rem;">
-        <button class="chip active" data-filter="all">Tous</button>
-        <button class="chip" data-filter="individuel">Individuel</button>
-        <button class="chip" data-filter="collectif">Collectif</button>
-        <button class="chip" data-filter="stage">Stage</button>
+        <button class="chip active" data-filter="all">Toutes</button>
+        <button class="chip" data-filter="new">À traiter</button>
+        <button class="chip" data-filter="contacted">Contactées</button>
+        <button class="chip" data-filter="archived">Archivées</button>
       </div>
-      <div id="slots-container"></div>
-    </section>
-
-    <section class="panel">
-      <div class="panel-head">
-        <h2>Inscriptions reçues</h2>
-        <span style="font-size: 0.85rem; color: var(--ink-soft);" id="bookings-count">—</span>
-      </div>
-      <div id="bookings-container"></div>
+      <div id="rq-container"></div>
     </section>
 
   </div>
 
 </main>
 
-<!-- Modal créneau -->
-<div class="modal-back" id="slot-modal">
+<!-- Modal détail demande -->
+<div class="modal-back" id="rq-modal">
   <div class="modal">
-    <h3 id="slot-modal-title">Nouveau créneau</h3>
-    <form id="slot-form">
-      <input type="hidden" id="slot-id">
-      <div class="row">
-        <label>Format</label>
-        <select id="slot-format" required>
-          <option value="individuel">Cours individuel (1 place)</option>
-          <option value="collectif">Cours collectif (2-5 places)</option>
-          <option value="stage">Stage intensif</option>
-        </select>
+    <h3>Demande de rendez-vous</h3>
+    <div id="rq-detail"></div>
+    <div class="modal-actions" style="justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+      <div style="display: flex; gap: 0.4rem;">
+        <button type="button" class="btn btn-ghost" data-status="new">À traiter</button>
+        <button type="button" class="btn btn-ghost" data-status="contacted">Contactée</button>
+        <button type="button" class="btn btn-ghost" data-status="archived">Archivée</button>
       </div>
-      <div class="row">
-        <label>Date et heure de début</label>
-        <input type="datetime-local" id="slot-starts-at" required>
+      <div style="display: flex; gap: 0.4rem;">
+        <button type="button" class="btn btn-danger" id="rq-delete">Supprimer</button>
+        <button type="button" class="btn btn-ghost" id="rq-close">Fermer</button>
       </div>
-      <div class="row">
-        <label>Durée (minutes)</label>
-        <input type="number" id="slot-duration" min="15" max="240" step="15" value="60" required>
-      </div>
-      <div class="row">
-        <label>Capacité (places)</label>
-        <input type="number" id="slot-capacity" min="1" max="20" value="1" required>
-      </div>
-      <div class="row">
-        <label>Titre (optionnel)</label>
-        <input type="text" id="slot-title" placeholder="Ex : Stage CE2 — semaine 1">
-      </div>
-      <div class="row">
-        <label>Notes internes (optionnel)</label>
-        <textarea id="slot-notes" rows="2"></textarea>
-      </div>
-      <div class="modal-actions">
-        <button type="button" class="btn btn-ghost" id="slot-cancel">Annuler</button>
-        <button type="submit" class="btn btn-primary" id="slot-save">Enregistrer</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- Modal détail réservation -->
-<div class="modal-back" id="booking-modal">
-  <div class="modal">
-    <h3>Détail de l'inscription</h3>
-    <div id="booking-detail"></div>
-    <div class="modal-actions">
-      <button type="button" class="btn btn-danger" id="booking-delete">Supprimer</button>
-      <button type="button" class="btn btn-ghost" id="booking-close">Fermer</button>
     </div>
   </div>
 </div>
@@ -302,37 +259,30 @@ tbody tr:hover { background: var(--cream); }
   const dashboard = document.getElementById('dashboard');
   const topbarUser = document.getElementById('topbar-user');
 
-  if (!configured) {
-    notice.style.display = 'block';
-    return;
-  }
+  if (!configured) { notice.style.display = 'block'; return; }
 
   const supabase = window.supabase.createClient(cfg.url, cfg.anonKey);
   let currentFilter = 'all';
-  let slotsCache = [];
-  let bookingsCache = [];
+  let rqCache = [];
+  let currentRq = null;
 
   // === AUTH ===
   async function refreshSession() {
     const { data: { session } } = await supabase.auth.getSession();
-    if (session) showDashboard(session.user);
-    else showLogin();
+    if (session) showDashboard(session.user); else showLogin();
   }
-
   function showLogin() {
     loginCard.style.display = 'block';
     dashboard.style.display = 'none';
     topbarUser.style.display = 'none';
   }
-
   function showDashboard(user) {
     loginCard.style.display = 'none';
     dashboard.style.display = 'block';
     topbarUser.style.display = 'flex';
     document.getElementById('user-email').textContent = user.email;
-    loadAll();
+    loadRequests();
   }
-
   document.getElementById('login-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('login-email').value.trim();
@@ -341,55 +291,30 @@ tbody tr:hover { background: var(--cream); }
     btn.disabled = true; btn.textContent = 'Envoi en cours…';
     msg.style.display = 'none';
     const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: window.location.href.split('#')[0] }
+      email, options: { emailRedirectTo: window.location.href.split('#')[0] }
     });
     btn.disabled = false; btn.textContent = 'Recevoir le lien';
-    if (error) {
-      msg.className = 'login-msg err';
-      msg.textContent = 'Erreur : ' + error.message;
-    } else {
-      msg.className = 'login-msg ok';
-      msg.textContent = 'Lien envoyé ! Vérifiez votre boîte mail et cliquez sur le lien pour vous connecter.';
-    }
+    if (error) { msg.className = 'login-msg err'; msg.textContent = 'Erreur : ' + error.message; }
+    else { msg.className = 'login-msg ok'; msg.textContent = 'Lien envoyé ! Vérifiez votre boîte mail.'; }
     msg.style.display = 'block';
   });
-
   document.getElementById('logout-btn').addEventListener('click', async () => {
-    await supabase.auth.signOut();
-    showLogin();
+    await supabase.auth.signOut(); showLogin();
   });
-
   supabase.auth.onAuthStateChange((_event, session) => {
-    if (session) showDashboard(session.user);
-    else showLogin();
+    if (session) showDashboard(session.user); else showLogin();
   });
 
   // === DATA ===
-  async function loadAll() {
-    await Promise.all([loadSlots(), loadBookings()]);
-  }
-
-  async function loadSlots() {
+  async function loadRequests() {
     const { data, error } = await supabase
-      .from('slots_with_count')
+      .from('appointment_requests')
       .select('*')
-      .gte('starts_at', new Date().toISOString())
-      .order('starts_at', { ascending: true });
-    if (error) { console.error(error); return; }
-    slotsCache = data || [];
-    renderSlots();
-  }
-
-  async function loadBookings() {
-    const { data, error } = await supabase
-      .from('bookings')
-      .select('*, slots(starts_at, format, title)')
       .order('created_at', { ascending: false })
-      .limit(50);
+      .limit(200);
     if (error) { console.error(error); return; }
-    bookingsCache = data || [];
-    renderBookings();
+    rqCache = data || [];
+    render();
   }
 
   // === RENDER ===
@@ -398,171 +323,87 @@ tbody tr:hover { background: var(--cream); }
     return d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })
       + ' · ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
   };
+  const STATUS_LABEL = { new: 'À traiter', contacted: 'Contactée', archived: 'Archivée' };
 
-  function renderSlots() {
-    const container = document.getElementById('slots-container');
-    const slots = currentFilter === 'all'
-      ? slotsCache
-      : slotsCache.filter(s => s.format === currentFilter);
-    if (!slots.length) {
-      container.innerHTML = `<div class="empty"><div class="ico">📅</div>Aucun créneau ${currentFilter !== 'all' ? 'pour ce format' : 'à venir'}.<br><small>Cliquez sur « + Ajouter un créneau » pour commencer.</small></div>`;
-      return;
-    }
-    let html = '<table><thead><tr><th>Quand</th><th>Format</th><th>Titre</th><th>Places</th><th></th></tr></thead><tbody>';
-    for (const s of slots) {
-      const seatsClass = s.seats_left === 0 ? 'full' : (s.seats_left <= 1 ? 'low' : 'ok');
-      const seatsLabel = s.seats_left === 0 ? 'Complet' : `${s.booked}/${s.capacity}`;
-      html += `<tr>
-        <td>${fmtDate(s.starts_at)}<br><small style="color:var(--ink-soft);">${s.duration_minutes} min</small></td>
-        <td><span class="tag ${s.format}">${s.format}</span></td>
-        <td>${s.title ? escapeHtml(s.title) : '<span style="color:var(--ink-soft);">—</span>'}</td>
-        <td><span class="seats-bar ${seatsClass}">${seatsLabel}</span></td>
-        <td class="actions-cell">
-          <button class="icon-btn" data-edit="${s.id}" title="Modifier">✏️</button>
-          <button class="icon-btn danger" data-delete="${s.id}" title="Supprimer">🗑</button>
-        </td>
-      </tr>`;
-    }
-    html += '</tbody></table>';
-    container.innerHTML = html;
-    container.querySelectorAll('[data-edit]').forEach(b =>
-      b.addEventListener('click', () => openSlotModal(slotsCache.find(s => s.id == b.dataset.edit))));
-    container.querySelectorAll('[data-delete]').forEach(b =>
-      b.addEventListener('click', () => deleteSlot(parseInt(b.dataset.delete))));
+  function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
 
-  function renderBookings() {
-    const container = document.getElementById('bookings-container');
-    document.getElementById('bookings-count').textContent =
-      bookingsCache.length + (bookingsCache.length === 50 ? ' (50 dernières)' : '');
-    if (!bookingsCache.length) {
-      container.innerHTML = `<div class="empty"><div class="ico">📭</div>Aucune inscription pour le moment.</div>`;
+  function render() {
+    const list = currentFilter === 'all' ? rqCache : rqCache.filter(r => r.status === currentFilter);
+    document.getElementById('rq-count').textContent =
+      list.length + ' demande' + (list.length > 1 ? 's' : '');
+    const container = document.getElementById('rq-container');
+    if (!list.length) {
+      container.innerHTML = `<div class="empty"><div class="ico">📭</div>Aucune demande ${currentFilter !== 'all' ? 'pour ce filtre' : 'pour le moment'}.</div>`;
       return;
     }
-    let html = '<table><thead><tr><th>Reçue le</th><th>Parent</th><th>Enfant</th><th>Créneau</th><th></th></tr></thead><tbody>';
-    for (const b of bookingsCache) {
-      const slot = b.slots;
+    let html = '<table><thead><tr><th>Reçue le</th><th>Parent</th><th>Enfant</th><th>Format</th><th>Statut</th><th></th></tr></thead><tbody>';
+    for (const r of list) {
+      const statusClass = r.status === 'new' ? 'individuel' : (r.status === 'contacted' ? 'collectif' : 'stage');
       html += `<tr>
-        <td><small>${fmtDate(b.created_at)}</small></td>
-        <td><strong>${escapeHtml(b.parent_name)}</strong><br><small>${escapeHtml(b.parent_email)}</small></td>
-        <td>${b.child_name ? escapeHtml(b.child_name) : '—'}${b.child_level ? ' <small>('+escapeHtml(b.child_level)+')</small>' : ''}</td>
-        <td>${slot ? '<span class="tag '+slot.format+'">'+slot.format+'</span><br><small>'+fmtDate(slot.starts_at)+'</small>' : '<small>(créneau supprimé)</small>'}</td>
-        <td class="actions-cell">
-          <button class="icon-btn" data-view="${b.id}" title="Voir le détail">👁</button>
-        </td>
+        <td><small>${fmtDate(r.created_at)}</small></td>
+        <td><strong>${escapeHtml(r.parent_name)}</strong><br><small><a href="mailto:${escapeHtml(r.parent_email)}">${escapeHtml(r.parent_email)}</a>${r.parent_phone ? ' · <a href="tel:'+escapeHtml(r.parent_phone)+'">'+escapeHtml(r.parent_phone)+'</a>' : ''}</small></td>
+        <td>${r.child_name ? escapeHtml(r.child_name) : '—'}${r.child_level ? ' <small>('+escapeHtml(r.child_level)+')</small>' : ''}</td>
+        <td>${r.format_preference ? '<span class="tag '+escapeHtml(r.format_preference)+'">'+escapeHtml(r.format_preference)+'</span>' : '<small>indifférent</small>'}</td>
+        <td><span class="tag ${statusClass}">${STATUS_LABEL[r.status] || r.status}</span></td>
+        <td class="actions-cell"><button class="icon-btn" data-view="${r.id}" title="Voir le détail">👁</button></td>
       </tr>`;
     }
     html += '</tbody></table>';
     container.innerHTML = html;
     container.querySelectorAll('[data-view]').forEach(btn =>
-      btn.addEventListener('click', () => openBookingModal(bookingsCache.find(b => b.id == btn.dataset.view))));
-  }
-
-  function escapeHtml(s) {
-    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      btn.addEventListener('click', () => openModal(rqCache.find(r => r.id == btn.dataset.view))));
   }
 
   // === FILTERS ===
-  document.querySelectorAll('.chip').forEach(chip => {
+  document.querySelectorAll('.filters .chip').forEach(chip => {
     chip.addEventListener('click', () => {
-      document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.filters .chip').forEach(c => c.classList.remove('active'));
       chip.classList.add('active');
       currentFilter = chip.dataset.filter;
-      renderSlots();
+      render();
     });
   });
 
-  // === SLOT MODAL ===
-  const slotModal = document.getElementById('slot-modal');
-  function openSlotModal(slot) {
-    document.getElementById('slot-modal-title').textContent = slot ? 'Modifier le créneau' : 'Nouveau créneau';
-    document.getElementById('slot-id').value = slot ? slot.id : '';
-    document.getElementById('slot-format').value = slot ? slot.format : 'individuel';
-    if (slot) {
-      const d = new Date(slot.starts_at);
-      const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-      document.getElementById('slot-starts-at').value = local;
-    } else {
-      document.getElementById('slot-starts-at').value = '';
-    }
-    document.getElementById('slot-duration').value = slot ? slot.duration_minutes : 60;
-    document.getElementById('slot-capacity').value = slot ? slot.capacity : (document.getElementById('slot-format').value === 'individuel' ? 1 : 5);
-    document.getElementById('slot-title').value = slot ? (slot.title || '') : '';
-    document.getElementById('slot-notes').value = slot ? (slot.notes || '') : '';
-    slotModal.classList.add('show');
-  }
-  function closeSlotModal() { slotModal.classList.remove('show'); }
-  document.getElementById('add-slot-btn').addEventListener('click', () => openSlotModal(null));
-  document.getElementById('slot-cancel').addEventListener('click', closeSlotModal);
-  slotModal.addEventListener('click', (e) => { if (e.target === slotModal) closeSlotModal(); });
-
-  // Auto-adjust capacity when format changes (new slot only)
-  document.getElementById('slot-format').addEventListener('change', (e) => {
-    if (!document.getElementById('slot-id').value) {
-      document.getElementById('slot-capacity').value = e.target.value === 'individuel' ? 1 : 5;
-    }
-  });
-
-  document.getElementById('slot-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const id = document.getElementById('slot-id').value;
-    const payload = {
-      format: document.getElementById('slot-format').value,
-      starts_at: new Date(document.getElementById('slot-starts-at').value).toISOString(),
-      duration_minutes: parseInt(document.getElementById('slot-duration').value),
-      capacity: parseInt(document.getElementById('slot-capacity').value),
-      title: document.getElementById('slot-title').value.trim() || null,
-      notes: document.getElementById('slot-notes').value.trim() || null,
-    };
-    const saveBtn = document.getElementById('slot-save');
-    saveBtn.disabled = true; saveBtn.textContent = 'Enregistrement…';
-    const op = id
-      ? supabase.from('slots').update(payload).eq('id', parseInt(id))
-      : supabase.from('slots').insert(payload);
-    const { error } = await op;
-    saveBtn.disabled = false; saveBtn.textContent = 'Enregistrer';
-    if (error) { alert('Erreur : ' + error.message); return; }
-    closeSlotModal();
-    await loadSlots();
-  });
-
-  async function deleteSlot(id) {
-    const slot = slotsCache.find(s => s.id === id);
-    const msg = slot && slot.booked > 0
-      ? `⚠️ Ce créneau a ${slot.booked} inscription(s). Le supprimer va aussi supprimer les inscriptions. Continuer ?`
-      : 'Supprimer ce créneau ?';
-    if (!confirm(msg)) return;
-    const { error } = await supabase.from('slots').delete().eq('id', id);
-    if (error) { alert('Erreur : ' + error.message); return; }
-    await loadAll();
-  }
-
-  // === BOOKING MODAL ===
-  const bookingModal = document.getElementById('booking-modal');
-  let currentBooking = null;
-  function openBookingModal(b) {
-    currentBooking = b;
-    const slot = b.slots;
-    document.getElementById('booking-detail').innerHTML = `
-      <div class="row"><label>Parent</label><div>${escapeHtml(b.parent_name)}</div></div>
-      <div class="row"><label>Email</label><div><a href="mailto:${escapeHtml(b.parent_email)}">${escapeHtml(b.parent_email)}</a></div></div>
-      <div class="row"><label>Téléphone</label><div>${b.parent_phone ? '<a href="tel:'+escapeHtml(b.parent_phone)+'">'+escapeHtml(b.parent_phone)+'</a>' : '—'}</div></div>
-      <div class="row"><label>Enfant</label><div>${b.child_name ? escapeHtml(b.child_name) : '—'} ${b.child_level ? '('+escapeHtml(b.child_level)+')' : ''}</div></div>
-      <div class="row"><label>Créneau réservé</label><div>${slot ? '<span class="tag '+slot.format+'">'+slot.format+'</span> · '+fmtDate(slot.starts_at) : '(supprimé)'}</div></div>
-      <div class="row"><label>Notes du parent</label><div>${b.notes ? escapeHtml(b.notes) : '—'}</div></div>
-      <div class="row"><label>Inscription reçue le</label><div>${fmtDate(b.created_at)}</div></div>
+  // === DETAIL MODAL ===
+  const modal = document.getElementById('rq-modal');
+  function openModal(r) {
+    currentRq = r;
+    document.getElementById('rq-detail').innerHTML = `
+      <div class="row"><label>Reçue le</label><div>${fmtDate(r.created_at)}</div></div>
+      <div class="row"><label>Statut actuel</label><div><span class="tag ${r.status === 'new' ? 'individuel' : r.status === 'contacted' ? 'collectif' : 'stage'}">${STATUS_LABEL[r.status] || r.status}</span></div></div>
+      <div class="row"><label>Parent</label><div>${escapeHtml(r.parent_name)}</div></div>
+      <div class="row"><label>Email</label><div><a href="mailto:${escapeHtml(r.parent_email)}">${escapeHtml(r.parent_email)}</a></div></div>
+      <div class="row"><label>Téléphone</label><div>${r.parent_phone ? '<a href="tel:'+escapeHtml(r.parent_phone)+'">'+escapeHtml(r.parent_phone)+'</a>' : '—'}</div></div>
+      <div class="row"><label>Enfant</label><div>${r.child_name ? escapeHtml(r.child_name) : '—'} ${r.child_level ? '('+escapeHtml(r.child_level)+')' : ''}</div></div>
+      <div class="row"><label>Format souhaité</label><div>${r.format_preference ? escapeHtml(r.format_preference) : 'indifférent'}</div></div>
+      <div class="row"><label>Créneaux préférés</label><div>${r.time_preference ? escapeHtml(r.time_preference) : '—'}</div></div>
+      <div class="row"><label>Message du parent</label><div style="white-space: pre-wrap;">${r.notes ? escapeHtml(r.notes) : '—'}</div></div>
     `;
-    bookingModal.classList.add('show');
+    modal.classList.add('show');
   }
-  document.getElementById('booking-close').addEventListener('click', () => bookingModal.classList.remove('show'));
-  bookingModal.addEventListener('click', (e) => { if (e.target === bookingModal) bookingModal.classList.remove('show'); });
-  document.getElementById('booking-delete').addEventListener('click', async () => {
-    if (!currentBooking) return;
-    if (!confirm('Supprimer cette inscription ? Le parent ne sera pas notifié automatiquement.')) return;
-    const { error } = await supabase.from('bookings').delete().eq('id', currentBooking.id);
+  document.getElementById('rq-close').addEventListener('click', () => modal.classList.remove('show'));
+  modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('show'); });
+
+  modal.querySelectorAll('[data-status]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (!currentRq) return;
+      const newStatus = btn.dataset.status;
+      const { error } = await supabase.from('appointment_requests').update({ status: newStatus }).eq('id', currentRq.id);
+      if (error) { alert('Erreur : ' + error.message); return; }
+      modal.classList.remove('show');
+      await loadRequests();
+    });
+  });
+
+  document.getElementById('rq-delete').addEventListener('click', async () => {
+    if (!currentRq) return;
+    if (!confirm('Supprimer définitivement cette demande ?')) return;
+    const { error } = await supabase.from('appointment_requests').delete().eq('id', currentRq.id);
     if (error) { alert('Erreur : ' + error.message); return; }
-    bookingModal.classList.remove('show');
-    await loadAll();
+    modal.classList.remove('show');
+    await loadRequests();
   });
 
   // === INIT ===

@@ -444,6 +444,62 @@ section.tarifs { background: var(--cream); }
 .tarif-row .price { font-family: 'Fraunces', serif; font-weight: 700; font-size: 1.5rem; color: var(--teal-deep); }
 .tarif-note { background: var(--cream-deep); border-radius: 14px; padding: 1.25rem; margin-top: 2rem; font-size: 0.93rem; }
 
+/* Prise de rendez-vous (formulaire simple) */
+section.rdv { background: var(--cream); }
+.rdv-form {
+  max-width: 720px; margin: 2rem auto 0;
+  background: var(--paper); border-radius: 24px;
+  padding: 2.5rem; display: grid; gap: 1.25rem;
+  box-shadow: 0 18px 48px -24px rgba(31,74,86,0.25);
+}
+.rdv-form .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.rdv-form .form-row { display: grid; gap: 0.4rem; }
+.rdv-form label { font-size: 0.78rem; font-weight: 600; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.05em; }
+.rdv-form input, .rdv-form select, .rdv-form textarea {
+  padding: 0.75rem 0.95rem; font-family: inherit; font-size: 0.95rem;
+  border: 1.5px solid var(--stripe); border-radius: 12px; background: var(--cream);
+  color: var(--ink);
+}
+.rdv-form input:focus, .rdv-form select:focus, .rdv-form textarea:focus {
+  outline: none; border-color: var(--teal-deep);
+}
+.rdv-form .chip-row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.rdv-form .chip {
+  padding: 0.5rem 1rem; border-radius: 999px;
+  background: var(--cream); border: 1.5px solid var(--stripe);
+  font-family: inherit; font-size: 0.9rem; color: var(--ink-soft);
+  cursor: pointer; transition: all 0.2s;
+}
+.rdv-form .chip:hover { border-color: var(--teal-mid); }
+.rdv-form .chip.selected { background: var(--teal-deep); color: var(--paper); border-color: var(--teal-deep); }
+.rdv-actions { margin-top: 0.75rem; display: flex; justify-content: flex-end; }
+.rdv-actions .btn { font-size: 1rem; padding: 0.85rem 1.5rem; }
+.rdv-error {
+  background: rgba(184,50,40,0.12); color: #B83228;
+  padding: 0.85rem 1rem; border-radius: 10px; font-size: 0.92rem;
+}
+.rdv-success {
+  max-width: 560px; margin: 2.5rem auto 0;
+  background: var(--paper); border-radius: 24px;
+  padding: 2.5rem; text-align: center;
+  box-shadow: 0 18px 48px -24px rgba(31,74,86,0.25);
+}
+.rdv-success .check {
+  width: 60px; height: 60px; border-radius: 50%;
+  background: var(--teal-deep); color: var(--paper);
+  display: grid; place-items: center; font-size: 1.8rem;
+  margin: 0 auto 1rem;
+}
+.rdv-success h3 {
+  font-family: 'Fraunces', serif; color: var(--teal-deep);
+  font-size: 1.5rem; margin-bottom: 0.5rem;
+}
+.rdv-success p { color: var(--ink-soft); }
+@media (max-width: 600px) {
+  .rdv-form { padding: 1.5rem; }
+  .rdv-form .form-grid-2 { grid-template-columns: 1fr; }
+}
+
 /* contact */
 section.contact { background: var(--paper); }
 .contact-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; }
@@ -784,14 +840,11 @@ section.faq { background: var(--cream-deep); }
       <li><a href="#formats">Formats</a></li>
       <li><a href="#sophie">Sophie</a></li>
       <li><a href="#avis">Avis</a></li>
-      <li><a href="#planning">Planning</a></li>
-      <li><a href="#tarifs">Tarifs</a></li>
       <li><a href="#faq">FAQ</a></li>
       <li><a href="#contact">Contact</a></li>
     </ul>
     <div class="actions">
-      <a href="#contact" class="btn btn-ghost">Évaluation gratuite</a>
-      <a href="#reservation" class="btn btn-primary">Réserver →</a>
+      <a href="#reservation" class="btn btn-primary">Prendre rendez-vous →</a>
     </div>
   </div>
 </nav>
@@ -1109,423 +1162,58 @@ section.faq { background: var(--cream-deep); }
 })();
 </script>
 
-<section class="planning" id="planning">
+<section id="reservation" class="rdv">
   <div class="container">
-    <span class="eyebrow">Réserver un créneau</span>
-    <h2 class="section-title">Choisissez votre format, puis votre créneau.</h2>
-    <p class="section-sub">Sélectionnez le type de cours ou l'inscription au stage. Le planning ci-dessous se met à jour avec les disponibilités en temps réel.</p>
+    <span class="eyebrow">Prendre rendez-vous</span>
+    <h2 class="section-title">Réservez votre premier échange.</h2>
+    <p class="section-sub">Quelques informations pour que Sophie puisse vous recontacter sous 48h, comprendre les besoins de votre enfant et caler ensemble un créneau.</p>
 
-    <div class="planning-tabs" role="tablist" aria-label="Type de cours">
-      <button class="planning-tab active" role="tab" aria-selected="true" data-event="cours-individuel">
-        <span class="ico">👤</span>
-        <span class="label">Cours individuel</span>
-        <span class="sub">1-à-1 sur mesure</span>
-      </button>
-      <button class="planning-tab" role="tab" aria-selected="false" data-event="cours-collectif">
-        <span class="ico">👥</span>
-        <span class="label">Cours collectif</span>
-        <span class="sub">2 à 5 élèves</span>
-        <span class="seats">places limitées</span>
-      </button>
-      <button class="planning-tab" role="tab" aria-selected="false" data-event="stage-intensif">
-        <span class="ico">☀️</span>
-        <span class="label">Stage intensif</span>
-        <span class="sub">vacances scolaires</span>
-      </button>
-    </div>
-
-    <div class="cal-embed-wrap" id="planning-wrap">
-      <div class="cal-setup-notice" id="planning-setup-notice" style="display: none;">
-        <div class="ico">🛠️</div>
-        <h4>Planning bientôt disponible</h4>
-        <p>Le système de réservation en ligne est en cours de configuration. En attendant, vous pouvez <a href="#contact" style="color: var(--coral); font-weight: 600;">contacter Sophie directement</a> pour caler un créneau ensemble.</p>
+    <form id="rdv-form" class="rdv-form" novalidate>
+      <div class="form-grid-2">
+        <div class="form-row"><label>Prénom du parent *</label><input type="text" id="rdv-firstname" required></div>
+        <div class="form-row"><label>Nom du parent *</label><input type="text" id="rdv-lastname" required></div>
       </div>
-      <div id="slot-list" class="slot-list"></div>
-      <div id="planning-loading" style="display:none; text-align:center; padding: 2rem; color: var(--ink-soft);">Chargement des créneaux…</div>
-      <div id="planning-empty" style="display:none; text-align:center; padding: 2rem; color: var(--ink-soft);">
-        <div style="font-size: 2rem;">📅</div>
-        <p style="margin-top: 0.5rem;">Aucun créneau disponible pour ce format pour le moment.<br>
-        <a href="#contact" style="color: var(--coral); font-weight: 600;">Contactez Sophie</a> pour être prévenu·e dès qu'un créneau s'ouvre.</p>
+      <div class="form-grid-2">
+        <div class="form-row"><label>Email *</label><input type="email" id="rdv-email" required></div>
+        <div class="form-row"><label>Téléphone *</label><input type="tel" id="rdv-phone" placeholder="06 12 34 56 78" required></div>
       </div>
-    </div>
-  </div>
-</section>
-
-<!-- Modal de réservation -->
-<div class="modal-overlay" id="booking-modal" onclick="if(event.target===this)closeBookingModal()">
-  <div class="modal-content" style="max-width: 520px;">
-    <div class="modal-header">
-      <h2 id="booking-modal-title">Réserver ce créneau</h2>
-      <button class="modal-close" onclick="closeBookingModal()" aria-label="Fermer">×</button>
-    </div>
-    <div class="modal-body">
-      <div id="booking-slot-info" style="background: var(--cream-deep); padding: 1rem; border-radius: 12px; margin-bottom: 1.25rem;"></div>
-      <form id="booking-form">
-        <div class="form-grid-2" style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-          <div class="form-row"><label>Prénom du parent *</label><input type="text" id="bk-firstname" required></div>
-          <div class="form-row"><label>Nom du parent *</label><input type="text" id="bk-lastname" required></div>
-        </div>
-        <div class="form-grid-2" style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-          <div class="form-row"><label>Email *</label><input type="email" id="bk-email" required></div>
-          <div class="form-row"><label>Téléphone</label><input type="tel" id="bk-phone" placeholder="06 12 34 56 78"></div>
-        </div>
-        <div class="form-grid-2" style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-          <div class="form-row"><label>Prénom de l'enfant</label><input type="text" id="bk-child"></div>
-          <div class="form-row">
-            <label>Niveau</label>
-            <select id="bk-level">
-              <option value="">—</option>
-              <option>CP</option><option>CE1</option><option>CE2</option><option>CM1</option><option>CM2</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-row" style="margin-bottom: 1rem;">
-          <label>Message (optionnel)</label>
-          <textarea id="bk-notes" rows="2" placeholder="Une difficulté particulière, une attente…"></textarea>
-        </div>
-        <div id="booking-error" style="display:none; padding: 0.75rem; background: rgba(184,50,40,0.1); color: #B83228; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem;"></div>
-        <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
-          <button type="button" class="btn btn-ghost" onclick="closeBookingModal()">Annuler</button>
-          <button type="submit" class="btn btn-primary" id="bk-submit">Confirmer la réservation</button>
-        </div>
-      </form>
-      <div id="booking-success" style="display:none; text-align: center; padding: 1.5rem;">
-        <div style="font-size: 3rem;">✅</div>
-        <h3 style="font-family: 'Fraunces', serif; color: var(--teal-deep); margin: 0.5rem 0 1rem;">Inscription confirmée !</h3>
-        <p style="color: var(--ink-soft);">Sophie vous contactera très prochainement pour confirmer les détails.</p>
-        <button class="btn btn-primary" onclick="closeBookingModal()" style="margin-top: 1.5rem;">Fermer</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="js/supabase-config.js"></script>
-<script>
-(function() {
-  const cfg = window.SUPABASE_CONFIG;
-  const configured = window.SUPABASE_CONFIGURED;
-  const wrap = document.getElementById("planning-wrap");
-  const notice = document.getElementById("planning-setup-notice");
-  const slotList = document.getElementById("slot-list");
-  const loading = document.getElementById("planning-loading");
-  const empty = document.getElementById("planning-empty");
-
-  if (!configured) {
-    notice.style.display = "block";
-    return;
-  }
-
-  const supabase = window.supabase.createClient(cfg.url, cfg.anonKey);
-  const FORMAT_BY_TAB = { "cours-individuel": "individuel", "cours-collectif": "collectif", "stage-intensif": "stage" };
-  let currentFormat = "individuel";
-  let currentSlots = [];
-  let selectedSlot = null;
-
-  function fmtSlot(iso, duration) {
-    const d = new Date(iso);
-    const date = d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
-    const time = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-    return { date: date.charAt(0).toUpperCase() + date.slice(1), time, duration };
-  }
-
-  function esc(s) {
-    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  }
-
-  async function loadSlots(format) {
-    currentFormat = format;
-    loading.style.display = "block";
-    slotList.innerHTML = "";
-    empty.style.display = "none";
-    const { data, error } = await supabase
-      .from('slots_with_count')
-      .select('*')
-      .eq('format', format)
-      .gte('starts_at', new Date().toISOString())
-      .gt('seats_left', 0)
-      .order('starts_at', { ascending: true })
-      .limit(30);
-    loading.style.display = "none";
-    if (error) {
-      slotList.innerHTML = `<div style="color: #B83228; padding: 1rem; text-align: center;">Erreur de chargement : ${esc(error.message)}</div>`;
-      return;
-    }
-    currentSlots = data || [];
-    if (!currentSlots.length) { empty.style.display = "block"; return; }
-    let html = "";
-    for (const s of currentSlots) {
-      const f = fmtSlot(s.starts_at, s.duration_minutes);
-      const seatsLabel = s.capacity > 1
-        ? `<span class="slot-seats ${s.seats_left <= 1 ? 'low' : 'ok'}">${s.seats_left} place${s.seats_left > 1 ? 's' : ''} restante${s.seats_left > 1 ? 's' : ''} / ${s.capacity}</span>`
-        : '';
-      html += `<button class="slot-item" data-id="${s.id}">
-        <div class="slot-date">
-          <div class="slot-day">${f.date}</div>
-          <div class="slot-time">${f.time} · ${f.duration} min</div>
-        </div>
-        <div class="slot-meta">
-          ${s.title ? '<div class="slot-title">'+esc(s.title)+'</div>' : ''}
-          ${seatsLabel}
-        </div>
-        <div class="slot-cta">Réserver →</div>
-      </button>`;
-    }
-    slotList.innerHTML = html;
-    slotList.querySelectorAll('.slot-item').forEach(btn => {
-      btn.addEventListener('click', () => openBookingModal(parseInt(btn.dataset.id)));
-    });
-  }
-
-  // Tabs
-  document.querySelectorAll(".planning-tab").forEach(tab => {
-    tab.addEventListener("click", () => {
-      document.querySelectorAll(".planning-tab").forEach(t => { t.classList.remove("active"); t.setAttribute("aria-selected","false"); });
-      tab.classList.add("active");
-      tab.setAttribute("aria-selected","true");
-      loadSlots(FORMAT_BY_TAB[tab.dataset.event]);
-    });
-  });
-
-  // Booking modal
-  const modal = document.getElementById("booking-modal");
-  const form = document.getElementById("booking-form");
-  const success = document.getElementById("booking-success");
-  const errBox = document.getElementById("booking-error");
-
-  window.openBookingModal = function(slotId) {
-    selectedSlot = currentSlots.find(s => s.id === slotId);
-    if (!selectedSlot) return;
-    const f = fmtSlot(selectedSlot.starts_at, selectedSlot.duration_minutes);
-    const formatLabel = { individuel: "Cours individuel", collectif: "Cours collectif", stage: "Stage intensif" }[selectedSlot.format];
-    document.getElementById("booking-slot-info").innerHTML = `
-      <div style="font-family: 'Fraunces', serif; font-size: 1.1rem; color: var(--teal-deep); font-weight: 600;">${esc(formatLabel)}</div>
-      <div style="margin-top: 0.25rem;">${esc(f.date)} · ${esc(f.time)} (${esc(f.duration)} min)</div>
-      ${selectedSlot.title ? '<div style="margin-top: 0.25rem; color: var(--ink-soft); font-size: 0.9rem;">'+esc(selectedSlot.title)+'</div>' : ''}
-    `;
-    form.style.display = "block";
-    success.style.display = "none";
-    errBox.style.display = "none";
-    form.reset();
-    modal.classList.add("open"); document.body.style.overflow = 'hidden';
-  };
-
-  window.closeBookingModal = function() {
-    modal.classList.remove("open"); document.body.style.overflow = '';
-    selectedSlot = null;
-  };
-
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    if (!selectedSlot) return;
-    const submitBtn = document.getElementById("bk-submit");
-    submitBtn.disabled = true; submitBtn.textContent = "Envoi…";
-    errBox.style.display = "none";
-    const payload = {
-      slot_id: selectedSlot.id,
-      parent_name: (document.getElementById("bk-firstname").value.trim() + " " + document.getElementById("bk-lastname").value.trim()).trim(),
-      parent_email: document.getElementById("bk-email").value.trim(),
-      parent_phone: document.getElementById("bk-phone").value.trim() || null,
-      child_name: document.getElementById("bk-child").value.trim() || null,
-      child_level: document.getElementById("bk-level").value || null,
-      notes: document.getElementById("bk-notes").value.trim() || null,
-    };
-    const { error } = await supabase.from('bookings').insert(payload);
-    submitBtn.disabled = false; submitBtn.textContent = "Confirmer la réservation";
-    if (error) {
-      errBox.textContent = "Une erreur est survenue : " + error.message + ". Si le créneau est plein, choisissez-en un autre.";
-      errBox.style.display = "block";
-      return;
-    }
-    form.style.display = "none";
-    success.style.display = "block";
-    // Reload slots in background to update seat counts
-    loadSlots(currentFormat);
-  });
-
-  // Initial load
-  loadSlots("individuel");
-})();
-</script>
-
-<section id="reservation" class="booking">
-  <div class="container">
-    <span class="eyebrow">Réserver un programme</span>
-    <h2 class="section-title">Quelques clics pour démarrer.</h2>
-    <p class="section-sub">Choisissez le format, le niveau, la formule. Vous recevrez ensuite un appel pour caler ensemble les créneaux qui conviennent à votre famille.</p>
-    <div class="booking-panel">
-      <aside class="booking-steps">
-        <h4>Votre programme</h4>
-        <div class="step-item active" data-step="1"><div class="num">1</div><div class="label">Format & niveau</div></div>
-        <div class="step-item" data-step="2"><div class="num">2</div><div class="label">Formule</div></div>
-        <div class="step-item" data-step="3"><div class="num">3</div><div class="label">Vos coordonnées</div></div>
-        <div class="step-item" data-step="4"><div class="num">4</div><div class="label">Paiement</div></div>
-      </aside>
-      <div class="booking-body">
-        <div class="booking-step active" data-step-content="1">
-          <h3>Quel format & quel niveau ?</h3>
-          <p class="body-sub">Le format détermine les formules disponibles à l'étape suivante.</p>
-          <div class="section-label">Format</div>
-          <div class="format-choices" id="format-choices">
-            <div class="format-choice" data-format="groupe">
-              <div class="ico">👥</div>
-              <h4>Petit groupe (2-5 élèves)</h4>
-              <p>Disponible toute l'année + stages intensifs l'été. ★ Recommandé.</p>
-            </div>
-            <div class="format-choice" data-format="individuel">
-              <div class="ico">👤</div>
-              <h4>Cours individuel</h4>
-              <p>Accompagnement 100 % personnalisé, toute l'année et pendant les vacances.</p>
-            </div>
-          </div>
-          <div class="section-label" style="margin-top: 1.25rem;">Niveau de l'enfant</div>
-          <div class="chip-grid" id="level-chips">
-            <button class="chip" data-id="CP">CP</button>
-            <button class="chip" data-id="CE1">CE1</button>
-            <button class="chip" data-id="CE2">CE2</button>
-            <button class="chip" data-id="CM1">CM1</button>
-            <button class="chip" data-id="CM2">CM2</button>
-          </div>
-          <div class="section-label" style="margin-top: 1.25rem;">Pays / fuseau horaire</div>
-          <div class="form-row" style="max-width: 360px;">
-            <select id="country-input">
-              <option value="">— Sélectionnez votre fuseau horaire —</option>
-            </select>
-          </div>
-          <div class="booking-nav">
-            <div style="font-size: 0.85rem; color: var(--ink-soft);">Étape 1 sur 4</div>
-            <button class="btn btn-primary" onclick="nextStep()" id="next-1" disabled>Continuer →</button>
-          </div>
-        </div>
-        <div class="booking-step" data-step-content="2">
-          <h3>Choisissez votre formule</h3>
-          <p class="body-sub" id="step2-sub">Toutes les formules incluent l'évaluation de départ et le plan personnalisé.</p>
-          <div class="package-list" id="package-list"></div>
-          <div class="booking-nav">
-            <button class="btn btn-ghost" onclick="prevStep()">← Retour</button>
-            <button class="btn btn-primary" onclick="nextStep()" id="next-2" disabled>Continuer →</button>
-          </div>
-        </div>
-        <div class="booking-step" data-step-content="3">
-          <h3>Vos coordonnées</h3>
-          <p class="body-sub">Sophie vous recontactera sous 48h pour caler les créneaux ensemble.</p>
-          <div class="payment-form">
-            <div class="form-grid-2">
-              <div class="form-row"><label>Prénom du parent</label><input type="text" id="p-firstname" placeholder="Marie"></div>
-              <div class="form-row"><label>Nom du parent</label><input type="text" id="p-lastname" placeholder="Dupont"></div>
-            </div>
-            <div class="form-row"><label>Email</label><input type="email" id="p-email" placeholder="parent@email.fr"></div>
-            <div class="form-row"><label>Téléphone (avec indicatif)</label><input type="tel" id="p-phone" placeholder="+33 6 12 34 56 78"></div>
-            <div class="form-row"><label>Prénom de l'enfant</label><input type="text" id="c-firstname" placeholder="Léa"></div>
-            <div class="form-row"><label>Message à Sophie (optionnel)</label><textarea id="p-message" placeholder="Difficultés rencontrées, objectifs particuliers, disponibilités préférées..."></textarea></div>
-          </div>
-          <div class="booking-nav">
-            <button class="btn btn-ghost" onclick="prevStep()">← Retour</button>
-            <button class="btn btn-primary" onclick="nextStep()" id="next-3" disabled>Continuer →</button>
-          </div>
-        </div>
-        <div class="booking-step" data-step-content="4">
-          <h3>Récapitulatif & paiement</h3>
-          <p class="body-sub">Paiement 100 % sécurisé. L'évaluation de départ est offerte pour toute formule réservée.</p>
-          <div class="order-summary" id="order-summary"></div>
-          <div class="section-label">Mode de paiement</div>
-          <div class="chip-grid" style="margin-bottom: 1.25rem;">
-            <button class="chip selected" onclick="this.parentElement.querySelectorAll('.chip').forEach(c=>c.classList.remove('selected'));this.classList.add('selected');document.getElementById('cb-form').style.display='grid';document.getElementById('virement-info').style.display='none';">💳 Carte bancaire</button>
-            <button class="chip" onclick="this.parentElement.querySelectorAll('.chip').forEach(c=>c.classList.remove('selected'));this.classList.add('selected');document.getElementById('cb-form').style.display='none';document.getElementById('virement-info').style.display='block';">🏦 Virement bancaire</button>
-          </div>
-          <div class="payment-form" id="cb-form">
-            <div class="form-row"><label>Numéro de carte</label><input type="text" placeholder="1234 5678 9012 3456" maxlength="19"></div>
-            <div class="form-grid-2">
-              <div class="form-row"><label>Expiration</label><input type="text" placeholder="MM/AA" maxlength="5"></div>
-              <div class="form-row"><label>CVV</label><input type="text" placeholder="123" maxlength="3"></div>
-            </div>
-            <div class="secure-badge">🔒 Paiement sécurisé via Stripe · CB, Visa, Mastercard, Apple Pay</div>
-          </div>
-          <div id="virement-info" style="display: none; padding: 1.25rem; background: var(--cream-deep); border-radius: 12px; font-size: 0.95rem; line-height: 1.7;">
-            <p style="margin-bottom: 0.75rem;"><strong>Paiement par virement bancaire</strong></p>
-            <p>En validant ci-dessous, vous recevrez par email un <strong>RIB et une référence unique</strong> à reporter sur votre virement. Le programme sera confirmé dès réception du paiement (généralement 1 à 2 jours ouvrés).</p>
-            <p style="margin-top: 0.75rem; font-size: 0.85rem; color: var(--ink-soft);">💡 Le virement est particulièrement adapté aux montants élevés et aux familles à l'étranger.</p>
-          </div>
-          <div class="booking-nav">
-            <button class="btn btn-ghost" onclick="prevStep()">← Retour</button>
-            <button class="btn btn-primary" onclick="confirmBooking()">Valider <span id="pay-amount"></span> →</button>
-          </div>
-        </div>
-        <div class="booking-step" data-step-content="5">
-          <div class="confirm-content">
-            <div class="check">✓</div>
-            <h3>Programme réservé !</h3>
-            <p class="body-sub">Un email de confirmation vient de partir. Sophie vous appellera sous 48h pour planifier les créneaux.</p>
-            <div class="confirm-detail" id="confirm-detail"></div>
-            <button class="btn btn-secondary" onclick="resetBooking()">Réserver un autre programme</button>
-          </div>
+      <div class="form-grid-2">
+        <div class="form-row"><label>Prénom de l'enfant</label><input type="text" id="rdv-child"></div>
+        <div class="form-row">
+          <label>Niveau</label>
+          <select id="rdv-level">
+            <option value="">—</option>
+            <option>CP</option><option>CE1</option><option>CE2</option><option>CM1</option><option>CM2</option>
+          </select>
         </div>
       </div>
-    </div>
-  </div>
-</section>
+      <div class="form-row">
+        <label>Format souhaité</label>
+        <div class="chip-row" id="rdv-format-chips">
+          <button type="button" class="chip" data-format="individuel">Cours individuel</button>
+          <button type="button" class="chip" data-format="collectif">Cours collectif</button>
+          <button type="button" class="chip" data-format="stage">Stage intensif</button>
+          <button type="button" class="chip selected" data-format="">Indifférent</button>
+        </div>
+      </div>
+      <div class="form-row">
+        <label>Vos créneaux préférés</label>
+        <input type="text" id="rdv-time" placeholder="Ex : mercredi après-midi, samedi matin">
+      </div>
+      <div class="form-row">
+        <label>Votre message (optionnel)</label>
+        <textarea id="rdv-notes" rows="3" placeholder="Une difficulté particulière, une attente, des questions…"></textarea>
+      </div>
+      <div id="rdv-error" class="rdv-error" style="display:none;"></div>
+      <div class="rdv-actions">
+        <button type="submit" class="btn btn-primary" id="rdv-submit">Demander un rendez-vous →</button>
+      </div>
+    </form>
 
-<section class="tarifs" id="tarifs">
-  <div class="container">
-    <span class="eyebrow">Tarifs simples & transparents</span>
-    <h2 class="section-title">Les formules proposées.</h2>
-    <p class="section-sub">Pas d'engagement caché. <strong>Évaluation de départ offerte</strong> pour toute formule souscrite.</p>
-    <div class="tarifs-wrap">
-      <div class="tarif-block featured">
-        <h3>Petits groupes <span style="font-size: 0.85rem; opacity: 0.7; font-weight: 400;">(2-5 élèves)</span></h3>
-        <span class="tarif-sub">— année scolaire —</span>
-        <div class="tarif-row">
-          <div class="desc"><div class="duration">24 semaines · 2h/sem</div><div class="detail">48 h au total · 18,75 €/h · ★ le plus complet</div></div>
-          <div class="price">900 €</div>
-        </div>
-        <div class="tarif-row">
-          <div class="desc"><div class="duration">12 semaines · 2h/sem</div><div class="detail">24 h au total · 20 €/h</div></div>
-          <div class="price">480 €</div>
-        </div>
-        <div class="tarif-row">
-          <div class="desc"><div class="duration">4 semaines · 2h/sem</div><div class="detail">8 h au total · 25 €/h</div></div>
-          <div class="price">200 €</div>
-        </div>
-        <span class="tarif-sub" style="margin-top: 2rem;">— vacances d'été · stage intensif —</span>
-        <div class="tarif-row">
-          <div class="desc"><div class="duration">3 semaines</div><div class="detail">2h/jour × 12 jours · 24 h · 20 €/h</div></div>
-          <div class="price">500 €</div>
-        </div>
-        <div class="tarif-row">
-          <div class="desc"><div class="duration">2 semaines</div><div class="detail">2h/jour × 8 jours · 16 h · 21,25 €/h</div></div>
-          <div class="price">340 €</div>
-        </div>
-        <div class="tarif-row">
-          <div class="desc"><div class="duration">1 semaine</div><div class="detail">2h/jour × 4 jours · 8 h · 22,50 €/h</div></div>
-          <div class="price">180 €</div>
-        </div>
-        <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(244,236,216,0.1); border-radius: 12px; font-size: 0.9rem;">
-          ✨ Idéal pour les <strong>révisions</strong>, <strong>remédiations</strong> et la <strong>préparation à la rentrée</strong>.
-        </div>
-      </div>
-      <div class="tarif-block">
-        <h3>Cours individuels</h3>
-        <span class="tarif-sub">— vacances & année scolaire —</span>
-        <div class="tarif-row">
-          <div class="desc"><div class="duration">Pack LIBRE 10 heures</div><div class="detail">À utiliser quand vous voulez · 35 €/h</div></div>
-          <div class="price">350 €</div>
-        </div>
-        <div class="tarif-row">
-          <div class="desc"><div class="duration">24 semaines · 1h/sem</div><div class="detail">Année complète · 24 h · 28 €/h · ★ recommandé</div></div>
-          <div class="price">680 €</div>
-        </div>
-        <div class="tarif-row">
-          <div class="desc"><div class="duration">12 semaines · 1h/sem</div><div class="detail">Un trimestre · 12 h · 31 €/h</div></div>
-          <div class="price">380 €</div>
-        </div>
-        <div style="margin-top: 1.5rem; padding: 1rem; background: var(--cream); border-radius: 12px; font-size: 0.9rem; color: var(--ink-soft);">
-          👤 Format à privilégier pour un <strong>accompagnement 100 % personnalisé</strong>, un travail sur des points très ciblés ou un rythme particulier.
-        </div>
-      </div>
-    </div>
-    <div class="tarif-note">
-      💳 <strong>Modalités de règlement</strong> — Paiement par carte bancaire (Visa, Mastercard, CB, Apple Pay) via Stripe, ou par <strong>virement bancaire</strong> sur demande. Paiement en 2 ou 3 fois sans frais possible à partir de 380 €.<br><br>
-      ℹ️ <em>Les cours étant dispensés en ligne (et non au domicile de l'élève), ils ne sont pas éligibles au crédit d'impôt « Services à la personne ». Un reçu en euros est fourni pour toute prestation.</em>
+    <div class="rdv-success" id="rdv-success" style="display:none;">
+      <div class="check">✓</div>
+      <h3>Merci, votre demande est enregistrée !</h3>
+      <p>Sophie vous recontacte sous 48h par téléphone ou par email pour caler un premier échange.</p>
     </div>
   </div>
 </section>
@@ -1768,11 +1456,9 @@ section.faq { background: var(--cream-deep); }
       <div class="footer-col">
         <h5>Pratique</h5>
         <ul>
-          <li><a href="#tarifs">Tarifs</a></li>
           <li><a href="#avis">Avis</a></li>
-          <li><a href="#planning">Planning en ligne</a></li>
           <li><a href="#faq">FAQ</a></li>
-          <li><a href="#reservation">Réserver</a></li>
+          <li><a href="#reservation">Prendre rendez-vous</a></li>
           <li><a href="#contact">Contact</a></li>
         </ul>
       </div>
@@ -1797,175 +1483,68 @@ section.faq { background: var(--cream-deep); }
   </div>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="js/supabase-config.js"></script>
 <script>
-const packages = {
-  groupe: [
-    // Année scolaire
-    { id: 'gr-an-24', name: '24 semaines · 2h par semaine', meta: 'Année complète · 48h · 18,75 €/h · ★ le plus complet', price: 900 },
-    { id: 'gr-an-12', name: '12 semaines · 2h par semaine', meta: 'Un trimestre · 24h · 20 €/h', price: 480 },
-    { id: 'gr-an-4', name: '4 semaines · 2h par semaine', meta: 'Démarrer en douceur · 8h · 25 €/h', price: 200 },
-    // Vacances d'été INTENSIF
-    { id: 'gr-ete-3', name: 'Stage intensif été · 3 semaines', meta: '2h/jour × 12 jours · 24h · 20 €/h', price: 500 },
-    { id: 'gr-ete-2', name: 'Stage intensif été · 2 semaines', meta: '2h/jour × 8 jours · 16h · 21,25 €/h', price: 340 },
-    { id: 'gr-ete-1', name: 'Stage intensif été · 1 semaine', meta: '2h/jour × 4 jours · 8h · 22,50 €/h', price: 180 },
-  ],
-  individuel: [
-    { id: 'ind-pack', name: 'Pack libre 10 heures', meta: 'À utiliser quand vous voulez · 35 €/h', price: 350 },
-    { id: 'ind-24', name: '24 semaines · 1h par semaine', meta: 'Année complète · 24h · 28 €/h · ★ recommandé', price: 680 },
-    { id: 'ind-12', name: '12 semaines · 1h par semaine', meta: 'Un trimestre · 12h · 31 €/h', price: 380 },
-  ]
-};
+(function() {
+  const cfg = window.SUPABASE_CONFIG;
+  const configured = window.SUPABASE_CONFIGURED;
+  const form = document.getElementById('rdv-form');
+  if (!form) return;
+  const success = document.getElementById('rdv-success');
+  const err = document.getElementById('rdv-error');
+  const submitBtn = document.getElementById('rdv-submit');
+  const chips = document.querySelectorAll('#rdv-format-chips .chip');
+  let selectedFormat = '';
 
-let state = { step: 1, format: null, level: null, country: '', package: null, parent: {} };
+  chips.forEach(c => c.addEventListener('click', () => {
+    chips.forEach(x => x.classList.remove('selected'));
+    c.classList.add('selected');
+    selectedFormat = c.dataset.format;
+  }));
 
-function renderFormats() {
-  document.querySelectorAll('.format-choice').forEach(el => {
-    el.classList.toggle('selected', el.dataset.format === state.format);
-    el.onclick = () => { state.format = el.dataset.format; state.package = null; renderBooking(); };
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    err.style.display = 'none';
+
+    const firstname = document.getElementById('rdv-firstname').value.trim();
+    const lastname = document.getElementById('rdv-lastname').value.trim();
+    const email = document.getElementById('rdv-email').value.trim();
+    const phone = document.getElementById('rdv-phone').value.trim();
+    if (!firstname || !lastname || !email || !phone) {
+      err.textContent = 'Merci de remplir les champs marqués d’un *.';
+      err.style.display = 'block';
+      return;
+    }
+    if (!configured) {
+      err.textContent = 'Le formulaire n’est pas encore connecté à la base. Contactez Sophie par téléphone ou email pour le moment.';
+      err.style.display = 'block';
+      return;
+    }
+    submitBtn.disabled = true; submitBtn.textContent = 'Envoi…';
+    const supabase = window.supabase.createClient(cfg.url, cfg.anonKey);
+    const payload = {
+      parent_name: (firstname + ' ' + lastname).trim(),
+      parent_email: email,
+      parent_phone: phone,
+      child_name: document.getElementById('rdv-child').value.trim() || null,
+      child_level: document.getElementById('rdv-level').value || null,
+      format_preference: selectedFormat || null,
+      time_preference: document.getElementById('rdv-time').value.trim() || null,
+      notes: document.getElementById('rdv-notes').value.trim() || null,
+    };
+    const { error } = await supabase.from('appointment_requests').insert(payload);
+    submitBtn.disabled = false; submitBtn.textContent = 'Demander un rendez-vous →';
+    if (error) {
+      err.textContent = 'Une erreur est survenue : ' + error.message;
+      err.style.display = 'block';
+      return;
+    }
+    form.style.display = 'none';
+    success.style.display = 'block';
+    success.scrollIntoView({ behavior: 'smooth', block: 'center' });
   });
-}
-function renderLevels() {
-  document.querySelectorAll('#level-chips .chip').forEach(c => {
-    c.classList.toggle('selected', c.dataset.id === state.level);
-    c.onclick = () => { state.level = c.dataset.id; renderBooking(); };
-  });
-}
-(function populateTimezones() {
-  const select = document.getElementById('country-input');
-  const zones = (typeof Intl !== 'undefined' && Intl.supportedValuesOf)
-    ? Intl.supportedValuesOf('timeZone')
-    : ['Europe/Paris','Europe/London','America/New_York','America/Los_Angeles','America/Toronto','America/Sao_Paulo','Asia/Dubai','Asia/Singapore','Asia/Tokyo','Australia/Sydney','Africa/Dakar','Africa/Abidjan','UTC'];
-  const groups = {};
-  zones.forEach(tz => {
-    const region = tz.includes('/') ? tz.split('/')[0] : 'Autres';
-    (groups[region] = groups[region] || []).push(tz);
-  });
-  Object.keys(groups).sort().forEach(region => {
-    const og = document.createElement('optgroup');
-    og.label = region;
-    groups[region].sort().forEach(tz => {
-      const opt = document.createElement('option');
-      opt.value = tz;
-      let offset = '';
-      try {
-        const d = new Date();
-        const parts = new Intl.DateTimeFormat('en-US', { timeZone: tz, timeZoneName: 'shortOffset' }).formatToParts(d);
-        const tzPart = parts.find(p => p.type === 'timeZoneName');
-        if (tzPart) offset = ' (' + tzPart.value + ')';
-      } catch (e) {}
-      opt.textContent = tz.replace(/_/g, ' ') + offset;
-      og.appendChild(opt);
-    });
-    select.appendChild(og);
-  });
-  try {
-    const userTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    if (userTz && select.querySelector(`option[value="${userTz}"]`)) select.value = userTz;
-    state.country = select.value;
-  } catch (e) {}
 })();
-document.getElementById('country-input').addEventListener('change', e => {
-  state.country = e.target.value;
-  document.getElementById('next-1').disabled = !(state.format && state.level && state.country.trim());
-});
-
-function renderPackages() {
-  const list = document.getElementById('package-list');
-  list.innerHTML = '';
-  if (!state.format) return;
-  const sub = document.getElementById('step2-sub');
-  sub.textContent = state.format === 'groupe'
-    ? 'Cours en petits groupes (2-5 élèves) — disponibles toute l\'année scolaire et en stage intensif pendant les vacances d\'été. Toutes les formules incluent l\'évaluation de départ.'
-    : 'Cours individuels — disponibles toute l\'année et pendant les vacances. Toutes les formules incluent l\'évaluation de départ.';
-  packages[state.format].forEach(p => {
-    const row = document.createElement('div');
-    row.className = 'package-row' + (state.package === p.id ? ' selected' : '');
-    row.innerHTML = `
-      <div class="package-info">
-        <div class="name">${p.name}</div>
-        <div class="meta">${p.meta}</div>
-      </div>
-      <div class="package-price">${p.price} €</div>
-    `;
-    row.onclick = () => { state.package = p.id; renderBooking(); };
-    list.appendChild(row);
-  });
-}
-
-function validateStep3() {
-  state.parent = {
-    firstname: document.getElementById('p-firstname').value.trim(),
-    lastname: document.getElementById('p-lastname').value.trim(),
-    email: document.getElementById('p-email').value.trim(),
-    phone: document.getElementById('p-phone').value.trim(),
-    childFirstname: document.getElementById('c-firstname').value.trim(),
-    message: document.getElementById('p-message').value.trim(),
-  };
-  const valid = state.parent.firstname && state.parent.lastname && state.parent.email && state.parent.phone && state.parent.childFirstname;
-  document.getElementById('next-3').disabled = !valid;
-}
-['p-firstname','p-lastname','p-email','p-phone','c-firstname','p-message'].forEach(id => {
-  document.getElementById(id).addEventListener('input', validateStep3);
-});
-
-function nextStep() { if (state.step < 5) state.step++; renderBooking(); }
-function prevStep() { if (state.step > 1) state.step--; renderBooking(); }
-
-function renderBooking() {
-  document.querySelectorAll('.step-item').forEach(el => {
-    const s = parseInt(el.dataset.step);
-    el.classList.toggle('active', s === state.step);
-    el.classList.toggle('done', s < state.step);
-  });
-  document.querySelectorAll('.booking-step').forEach(el => {
-    const s = parseInt(el.dataset.stepContent);
-    el.classList.toggle('active', s === state.step);
-  });
-  renderFormats(); renderLevels();
-  document.getElementById('next-1').disabled = !(state.format && state.level && state.country.trim());
-  if (state.step === 2) renderPackages();
-  document.getElementById('next-2').disabled = !state.package;
-  if (state.step === 3) validateStep3();
-  if (state.step === 4) renderSummary();
-}
-
-function renderSummary() {
-  const p = packages[state.format].find(x => x.id === state.package);
-  const formatLabel = state.format === 'individuel' ? 'Cours individuel' : 'Petit groupe (2-5 élèves)';
-  document.getElementById('order-summary').innerHTML = `
-    <div class="order-line"><span>Format</span><span>${formatLabel}</span></div>
-    <div class="order-line"><span>Niveau</span><span>${state.level}</span></div>
-    <div class="order-line"><span>Formule</span><span>${p.name}</span></div>
-    <div class="order-line"><span>Élève</span><span>${state.parent.childFirstname}</span></div>
-    <div class="order-line"><span>Évaluation de départ</span><span>OFFERTE</span></div>
-    <div class="order-line total"><span>Total à régler</span><span>${p.price.toFixed(2)} €</span></div>
-  `;
-  document.getElementById('pay-amount').textContent = `${p.price}€`;
-}
-
-function confirmBooking() {
-  const p = packages[state.format].find(x => x.id === state.package);
-  const formatLabel = state.format === 'individuel' ? 'Cours individuel' : 'Petit groupe';
-  document.getElementById('confirm-detail').innerHTML = `
-    <div class="confirm-line"><span>Référence</span><span>ADE-${Math.floor(Math.random() * 90000 + 10000)}</span></div>
-    <div class="confirm-line"><span>Format</span><span>${formatLabel} · ${state.level}</span></div>
-    <div class="confirm-line"><span>Formule</span><span>${p.name}</span></div>
-    <div class="confirm-line"><span>Élève</span><span>${state.parent.childFirstname}</span></div>
-    <div class="confirm-line"><span>Pays</span><span>${state.country}</span></div>
-    <div class="confirm-line"><span>Montant</span><span>${p.price.toFixed(2)} €</span></div>
-  `;
-  state.step = 5;
-  renderBooking();
-}
-
-function resetBooking() {
-  state = { step: 1, format: null, level: null, country: '', package: null, parent: {} };
-  document.querySelectorAll('#country-input').forEach(i => i.value = '');
-  ['p-firstname','p-lastname','p-email','p-phone','c-firstname','p-message'].forEach(id => document.getElementById(id).value = '');
-  renderBooking();
-}
-
-renderBooking();
 </script>
 
 <!-- Modales légales -->
