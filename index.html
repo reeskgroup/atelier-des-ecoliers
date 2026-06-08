@@ -444,8 +444,20 @@ section.tarifs { background: var(--cream); }
 .tarif-row .price { font-family: 'Fraunces', serif; font-weight: 700; font-size: 1.5rem; color: var(--teal-deep); }
 .tarif-note { background: var(--cream-deep); border-radius: 14px; padding: 1.25rem; margin-top: 2rem; font-size: 0.93rem; }
 
-/* Prise de rendez-vous (formulaire simple) */
+/* Prise de rendez-vous (Calendly inline) */
 section.rdv { background: var(--cream); }
+.calendly-wrap {
+  max-width: 900px; margin: 2rem auto 0;
+  background: var(--paper); border-radius: 24px;
+  padding: 1rem; box-shadow: 0 18px 48px -24px rgba(31,74,86,0.25);
+  overflow: hidden;
+}
+.calendly-inline-widget { border-radius: 18px; }
+@media (max-width: 600px) {
+  .calendly-wrap { padding: 0.5rem; }
+  .calendly-inline-widget { min-height: 900px; }
+}
+/* Anciens styles du formulaire RDV (conservés au cas où) */
 .rdv-form {
   max-width: 720px; margin: 2rem auto 0;
   background: var(--paper); border-radius: 24px;
@@ -1226,56 +1238,17 @@ section.faq { background: var(--cream-deep); }
 <section id="reservation" class="rdv">
   <div class="container">
     <span class="eyebrow">Prendre rendez-vous</span>
-    <h2 class="section-title">Réservez votre premier échange.</h2>
-    <p class="section-sub">Quelques informations pour que Sophie puisse vous recontacter sous 48h, comprendre les besoins de votre enfant et caler ensemble un créneau.</p>
+    <h2 class="section-title">Choisissez un créneau de 30 min avec Sophie.</h2>
+    <p class="section-sub">Premier échange gratuit pour comprendre les besoins de votre enfant et caler ensemble la suite. Sélectionnez directement un créneau dans le calendrier ci-dessous.</p>
 
-    <form id="rdv-form" class="rdv-form" novalidate>
-      <div class="form-grid-2">
-        <div class="form-row"><label>Prénom du parent *</label><input type="text" id="rdv-firstname" required></div>
-        <div class="form-row"><label>Nom du parent *</label><input type="text" id="rdv-lastname" required></div>
-      </div>
-      <div class="form-grid-2">
-        <div class="form-row"><label>Email *</label><input type="email" id="rdv-email" required></div>
-        <div class="form-row"><label>Téléphone *</label><input type="tel" id="rdv-phone" placeholder="06 12 34 56 78" required></div>
-      </div>
-      <div class="form-grid-2">
-        <div class="form-row"><label>Prénom de l'enfant</label><input type="text" id="rdv-child"></div>
-        <div class="form-row">
-          <label>Niveau</label>
-          <select id="rdv-level">
-            <option value="">—</option>
-            <option>CP</option><option>CE1</option><option>CE2</option><option>CM1</option><option>CM2</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-row">
-        <label>Format souhaité</label>
-        <div class="chip-row" id="rdv-format-chips">
-          <button type="button" class="chip" data-format="individuel">Cours individuel</button>
-          <button type="button" class="chip" data-format="collectif">Cours collectif</button>
-          <button type="button" class="chip" data-format="stage">Stage intensif</button>
-          <button type="button" class="chip selected" data-format="">Indifférent</button>
-        </div>
-      </div>
-      <div class="form-row">
-        <label>Vos créneaux préférés</label>
-        <input type="text" id="rdv-time" placeholder="Ex : mercredi après-midi, samedi matin">
-      </div>
-      <div class="form-row">
-        <label>Votre message (optionnel)</label>
-        <textarea id="rdv-notes" rows="3" placeholder="Une difficulté particulière, une attente, des questions…"></textarea>
-      </div>
-      <div id="rdv-error" class="rdv-error" style="display:none;"></div>
-      <div class="rdv-actions">
-        <button type="submit" class="btn btn-primary" id="rdv-submit">Demander un rendez-vous →</button>
-      </div>
-    </form>
-
-    <div class="rdv-success" id="rdv-success" style="display:none;">
-      <div class="check">✓</div>
-      <h3>Merci, votre demande est enregistrée !</h3>
-      <p>Sophie vous recontacte sous 48h par téléphone ou par email pour caler un premier échange.</p>
+    <!-- Calendly inline widget -->
+    <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet">
+    <div class="calendly-wrap">
+      <div class="calendly-inline-widget"
+           data-url="https://calendly.com/sophiebp-prof/30min?hide_landing_page_details=1&hide_gdpr_banner=1&primary_color=2c5f6f"
+           style="min-width:320px;height:720px;"></div>
     </div>
+    <script type="text/javascript" src="https://assets.calendly.com/assets/external/widget.js" async></script>
   </div>
 </section>
 
@@ -1544,70 +1517,6 @@ section.faq { background: var(--cream-deep); }
     </div>
   </div>
 </footer>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="js/supabase-config.js"></script>
-<script>
-(function() {
-  const cfg = window.SUPABASE_CONFIG;
-  const configured = window.SUPABASE_CONFIGURED;
-  const form = document.getElementById('rdv-form');
-  if (!form) return;
-  const success = document.getElementById('rdv-success');
-  const err = document.getElementById('rdv-error');
-  const submitBtn = document.getElementById('rdv-submit');
-  const chips = document.querySelectorAll('#rdv-format-chips .chip');
-  let selectedFormat = '';
-
-  chips.forEach(c => c.addEventListener('click', () => {
-    chips.forEach(x => x.classList.remove('selected'));
-    c.classList.add('selected');
-    selectedFormat = c.dataset.format;
-  }));
-
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    err.style.display = 'none';
-
-    const firstname = document.getElementById('rdv-firstname').value.trim();
-    const lastname = document.getElementById('rdv-lastname').value.trim();
-    const email = document.getElementById('rdv-email').value.trim();
-    const phone = document.getElementById('rdv-phone').value.trim();
-    if (!firstname || !lastname || !email || !phone) {
-      err.textContent = 'Merci de remplir les champs marqués d’un *.';
-      err.style.display = 'block';
-      return;
-    }
-    if (!configured) {
-      err.textContent = 'Le formulaire n’est pas encore connecté à la base. Contactez Sophie par téléphone ou email pour le moment.';
-      err.style.display = 'block';
-      return;
-    }
-    submitBtn.disabled = true; submitBtn.textContent = 'Envoi…';
-    const supabase = window.supabase.createClient(cfg.url, cfg.anonKey);
-    const payload = {
-      parent_name: (firstname + ' ' + lastname).trim(),
-      parent_email: email,
-      parent_phone: phone,
-      child_name: document.getElementById('rdv-child').value.trim() || null,
-      child_level: document.getElementById('rdv-level').value || null,
-      format_preference: selectedFormat || null,
-      time_preference: document.getElementById('rdv-time').value.trim() || null,
-      notes: document.getElementById('rdv-notes').value.trim() || null,
-    };
-    const { error } = await supabase.from('appointment_requests').insert(payload);
-    submitBtn.disabled = false; submitBtn.textContent = 'Demander un rendez-vous →';
-    if (error) {
-      err.textContent = 'Une erreur est survenue : ' + error.message;
-      err.style.display = 'block';
-      return;
-    }
-    form.style.display = 'none';
-    success.style.display = 'block';
-    success.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  });
-})();
-</script>
 
 <!-- Modales légales -->
 <div class="modal-overlay" id="modal-mentions" onclick="if(event.target===this)closeModal('modal-mentions')">
