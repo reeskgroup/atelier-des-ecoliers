@@ -1183,6 +1183,66 @@ section.faq { background: var(--cream-deep); }
     if (e.key === 'ArrowLeft') { e.preventDefault(); scrollByCards(-1); }
     else if (e.key === 'ArrowRight') { e.preventDefault(); scrollByCards(1); }
   });
+
+  // Autoplay : passe au témoignage suivant toutes les 6 s, boucle au début à la fin.
+  // Se met en pause au survol, au focus clavier, à l'interaction manuelle et si l'onglet est caché.
+  const AUTOPLAY_MS = 6000;
+  let autoplayTimer = null;
+  let paused = false;
+
+  function advance() {
+    // Si on est proche de la fin, on revient au début ; sinon on avance d'une carte.
+    const atEnd = track.scrollLeft + track.clientWidth >= track.scrollWidth - 4;
+    if (atEnd) {
+      track.scrollTo({ left: 0, behavior: 'smooth' });
+    } else {
+      scrollByCards(1);
+    }
+  }
+  function startAutoplay() {
+    stopAutoplay();
+    if (paused) return;
+    autoplayTimer = setInterval(advance, AUTOPLAY_MS);
+  }
+  function stopAutoplay() {
+    if (autoplayTimer) { clearInterval(autoplayTimer); autoplayTimer = null; }
+  }
+  function pauseAutoplay() { paused = true; stopAutoplay(); }
+  function resumeAutoplay() { paused = false; startAutoplay(); }
+
+  // Pause au survol souris (utilisateur qui lit)
+  track.addEventListener('mouseenter', pauseAutoplay);
+  track.addEventListener('mouseleave', resumeAutoplay);
+  // Pause au focus (navigation clavier)
+  track.addEventListener('focusin', pauseAutoplay);
+  track.addEventListener('focusout', resumeAutoplay);
+  // Coupe l'autoplay quand l'onglet passe en arrière-plan
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) stopAutoplay(); else if (!paused) startAutoplay();
+  });
+  // Interaction manuelle → pause 12 s puis reprend
+  [prev, next].forEach(btn => btn.addEventListener('click', () => {
+    stopAutoplay();
+    clearTimeout(btn._t);
+    btn._t = setTimeout(() => { if (!paused) startAutoplay(); }, 12000);
+  }));
+  dots.forEach(dot => dot.addEventListener('click', () => {
+    stopAutoplay();
+    clearTimeout(dot._t);
+    dot._t = setTimeout(() => { if (!paused) startAutoplay(); }, 12000);
+  }));
+
+  // Démarre l'autoplay uniquement quand le carrousel est visible à l'écran
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) startAutoplay(); else stopAutoplay();
+      });
+    }, { threshold: 0.3 });
+    io.observe(track);
+  } else {
+    startAutoplay();
+  }
 })();
 </script>
 
